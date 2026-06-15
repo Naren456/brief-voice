@@ -1,6 +1,6 @@
 # Harshita Completed Work
 
-## Things Already Implemented Before Our Part
+## Things Already Implemented Before My Part
 
 - Backend project setup with Fastify, TypeScript, Prisma, SQLite, Swagger, and basic health route.
 - Meeting upload and meeting list APIs were already started.
