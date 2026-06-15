@@ -140,6 +140,30 @@ http://localhost:8000/docs
 
 ---
 
+## 🐳 Run With Docker
+
+From the project root:
+
+```bash
+docker compose up --build
+```
+
+Backend:
+
+```text
+http://localhost:8000
+```
+
+Swagger:
+
+```text
+http://localhost:8000/docs
+```
+
+The container installs FFmpeg, generates the Prisma client during install, and runs `prisma db push` on startup so the SQLite schema is ready. SQLite data and uploaded audio are stored in Docker volumes.
+
+---
+
 ## 📌 Current Features
 
 ### Health Check
