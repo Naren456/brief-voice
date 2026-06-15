@@ -139,6 +139,7 @@ export async function generateSummary(transcriptText: string, identifiedSpeakers
         type: "json_schema",
         json_schema: summaryJsonSchema,
       },
+      max_tokens: 900,
       temperature: 0.1, 
     });
 
@@ -179,6 +180,7 @@ export async function extractActionItems(transcriptText: string): Promise<OpenAI
         type: "json_schema",
         json_schema: actionItemsJsonSchema,
       },
+      max_tokens: 700,
       temperature: 0.1,
     });
 

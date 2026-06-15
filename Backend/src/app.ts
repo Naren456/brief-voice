@@ -5,6 +5,7 @@ import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
 
 import meetingRoutes from "./routes/meetings";
+import analyticsRoutes from "./routes/analytics";
 
 const app = Fastify({
   logger: true,
@@ -36,6 +37,7 @@ async function start() {
   });
 
   await app.register(meetingRoutes);
+  await app.register(analyticsRoutes);
 
   app.get("/", async () => {
     return {

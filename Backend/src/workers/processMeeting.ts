@@ -99,6 +99,6 @@ export async function processMeetingPipeline(meetingId: string, filePath: string
     await prisma.meeting.update({
       where: { id: meetingId },
       data: { status: "error" },
-    }).catch((dbErr) => console.error(`[Worker Error] Failed to write error state to database:`, dbErr));
+    }).catch((dbErr: unknown) => console.error(`[Worker Error] Failed to write error state to database:`, dbErr));
   }
 }
