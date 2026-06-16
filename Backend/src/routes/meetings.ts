@@ -7,7 +7,7 @@ import path from "path";
 import { prisma } from "../db/prisma";
 import { processMeetingPipeline } from "../workers/processMeeting";
 import { deleteMeetingEmbeddings } from "../services/search.service";
-import { generatePDFReport } from "../services/pdf.service";
+import { generatePDFReport, PDFReportError } from "../services/pdf.service";
 import {
   MeetingParamsSchema,
   SpeakerLabelsSchema,
@@ -84,6 +84,10 @@ function sanitizeUploadedFilename(filename: string) {
   );
 }
 
+function safeDownloadFilename(filename: string) {
+  return filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
 export default async function meetingRoutes(fastify: FastifyInstance) {
   fastify.get(
     "/meetings",
@@ -116,15 +120,16 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
 
       try {
         const pdf = await generatePDFReport(id);
+        const reportFilename = safeDownloadFilename(`meeting-${id}-report.pdf`);
 
         return reply
           .header("Content-Type", "application/pdf")
-          .header("Content-Disposition", `attachment; filename="meeting-${id}-report.pdf"`)
+          .header("Content-Disposition", `attachment; filename="${reportFilename}"`)
           .send(pdf);
       } catch (error) {
-        if (error instanceof Error && error.message === "Meeting not found") {
-          return reply.status(404).send({
-            error: "Meeting not found",
+        if (error instanceof PDFReportError) {
+          return reply.status(error.statusCode).send({
+            error: error.message,
           });
         }
 
