@@ -1,17 +1,32 @@
-// Backend/src/routes/analytics.ts
-
 import { FastifyInstance } from "fastify";
-import { getSpeakingTime, getOverviewStats } from "../services/analytics.service";
+import {
+  getAnalyticsOverview,
+  getMeetingAnalytics,
+  getOverviewStats,
+  getSpeakingTime,
+} from "../services/analytics.service";
 import { MeetingParamsSchema } from "../schemas/meeting";
 
-export default async function analyticsRoutes(app: FastifyInstance) {
-  // Dashboard overview: meeting counts + action-item completion rate.
-  app.get(
+export default async function analyticsRoutes(fastify: FastifyInstance) {
+  fastify.get(
+    "/analytics",
+    {
+      schema: {
+        tags: ["Analytics"],
+        summary: "Dashboard analytics overview",
+      },
+    },
+    async () => {
+      return getAnalyticsOverview();
+    }
+  );
+
+  fastify.get(
     "/analytics/overview",
     {
       schema: {
         tags: ["Analytics"],
-        summary: "Archive-wide overview stats",
+        summary: "Get overall meeting analytics",
       },
     },
     async () => {
@@ -19,9 +34,31 @@ export default async function analyticsRoutes(app: FastifyInstance) {
     }
   );
 
-  // Per-meeting speaking-time breakdown.
-  app.get(
+  fastify.get(
     "/analytics/meeting/:id",
+    {
+      schema: {
+        tags: ["Analytics"],
+        summary: "Get speaking-time analytics for one meeting",
+        params: MeetingParamsSchema,
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params as { id: string };
+      const analytics = await getMeetingAnalytics(id);
+
+      if (!analytics) {
+        return reply.status(404).send({
+          error: "Meeting not found",
+        });
+      }
+
+      return analytics;
+    }
+  );
+
+  fastify.get(
+    "/analytics/meeting/:id/speaking-time",
     {
       schema: {
         tags: ["Analytics"],

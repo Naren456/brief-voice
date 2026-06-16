@@ -1,13 +1,11 @@
-// Backend/src/routes/meetings.ts
-
 import { FastifyInstance } from "fastify";
 import { randomUUID } from "crypto";
 import { pipeline } from "stream/promises";
 import fs from "fs";
 import fsPromises from "fs/promises";
 import path from "path";
-import { prisma } from "../db/prisma"; // Import your Prisma client instance
-import { processMeetingPipeline } from "../workers/processMeeting"; // Import your background pipeline worker
+import { prisma } from "../db/prisma";
+import { processMeetingPipeline } from "../workers/processMeeting";
 import { deleteMeetingEmbeddings } from "../services/search.service";
 import {
   MeetingParamsSchema,
@@ -17,16 +15,9 @@ import {
   ALLOWED_AUDIO_EXTENSIONS,
 } from "../schemas/meeting";
 
-function sanitizeUploadedFilename(filename: string) {
-  return path
-    .basename(filename)
-    .replace(/[^a-zA-Z0-9._-]/g, "_")
-    .replace(/^_+/, "") || "meeting-audio";
-}
-
-/** Parse a stored JSON-string column back into an array, tolerating bad data. */
 function parseJsonArray(value: string | null | undefined): string[] {
   if (!value) return [];
+
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? parsed : [];
@@ -35,8 +26,64 @@ function parseJsonArray(value: string | null | undefined): string[] {
   }
 }
 
+function findMeetingDetail(id: string) {
+  return prisma.meeting.findUnique({
+    where: { id },
+    include: {
+      transcript: {
+        include: {
+          segments: {
+            orderBy: {
+              startMs: "asc",
+            },
+          },
+        },
+      },
+      summary: true,
+      actionItems: {
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+    },
+  });
+}
+
+function formatMeetingDetail(meeting: NonNullable<Awaited<ReturnType<typeof findMeetingDetail>>>) {
+  return {
+    id: meeting.id,
+    filename: meeting.filename,
+    status: meeting.status,
+    createdAt: meeting.createdAt,
+    transcript: meeting.transcript
+      ? {
+          fullText: meeting.transcript.fullText,
+          segments: meeting.transcript.segments,
+        }
+      : null,
+    summary: meeting.summary
+      ? {
+          attendees: parseJsonArray(meeting.summary.attendees),
+          keyDecisions: parseJsonArray(meeting.summary.keyDecisions),
+          discussionPoints: parseJsonArray(meeting.summary.discussionPoints),
+          openQuestions: parseJsonArray(meeting.summary.openQuestions),
+          nextSteps: parseJsonArray(meeting.summary.nextSteps),
+        }
+      : null,
+    actionItems: meeting.actionItems,
+  };
+}
+
+function sanitizeUploadedFilename(filename: string) {
+  return (
+    path
+      .basename(filename)
+      .replace(/[^a-zA-Z0-9._-]/g, "_")
+      .replace(/^_+/, "") || "meeting-audio"
+  );
+}
+
 export default async function meetingRoutes(fastify: FastifyInstance) {
-  // 1. GET ALL MEETINGS
   fastify.get(
     "/meetings",
     {
@@ -46,162 +93,37 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
       },
     },
     async () => {
-      // Fetch actual meeting records from SQLite ordered by creation time
-      const meetings = await prisma.meeting.findMany({
+      return prisma.meeting.findMany({
         orderBy: {
           createdAt: "desc",
         },
       });
-      return meetings;
     }
   );
 
-  // 2. UPLOAD & INITIALIZE PIPELINE
-  fastify.post(
-    "/meetings/upload",
-    {
-      schema: {
-        tags: ["Meetings"],
-        summary: "Upload meeting audio",
-      },
-    },
-    async (request, reply) => {
-      const file = await request.file();
-
-      if (!file) {
-        return reply.status(400).send({
-          error: "No file uploaded",
-        });
-      }
-
-      // Validate the file extension before we spend effort writing it to disk.
-      const ext = path.extname(file.filename).toLowerCase();
-      if (!ALLOWED_AUDIO_EXTENSIONS.includes(ext as (typeof ALLOWED_AUDIO_EXTENSIONS)[number])) {
-        return reply.status(400).send({
-          error: `Unsupported file type "${ext || "unknown"}". Allowed: ${ALLOWED_AUDIO_EXTENSIONS.join(", ")}`,
-        });
-      }
-
-      const meetingId = randomUUID();
-      const uploadsDir = "uploads";
-
-      // Ensure directory exists
-      await fsPromises.mkdir(uploadsDir, {
-        recursive: true,
-      });
-
-      const originalFilename = sanitizeUploadedFilename(file.filename);
-      const filename = `${meetingId}-${originalFilename}`;
-      const filepath = path.join(uploadsDir, filename);
-
-      // STREAMING OPTIMIZATION: Pipe the inbound file data directly to disk.
-      // This prevents the whole file from loading into RAM, making large file uploads safe.
-      const writeStream = fs.createWriteStream(filepath);
-      try {
-        await pipeline(file.file, writeStream);
-      } catch (err) {
-        await fsPromises.unlink(filepath).catch(() => {});
-        throw err;
-      }
-
-      // @fastify/multipart flags the stream as truncated if it exceeded the size limit.
-      if (file.file.truncated) {
-        await fsPromises.unlink(filepath).catch(() => {});
-        return reply.status(400).send({
-          error: "File exceeds the maximum allowed size.",
-        });
-      }
-
-      // Reject empty uploads outright — they cannot be transcribed.
-      const stats = await fsPromises.stat(filepath);
-      if (stats.size === 0) {
-        await fsPromises.unlink(filepath).catch(() => {});
-        return reply.status(400).send({ error: "Uploaded file is empty." });
-      }
-
-      // Save initial state to the SQLite database
-      const newMeeting = await prisma.meeting.create({
-        data: {
-          id: meetingId,
-          filename: originalFilename,
-          audioPath: filepath,
-          status: "uploaded", // Default initial state
-        },
-      });
-
-      // FIRE AND FORGET WORKER PIPELINE
-      // Do NOT use 'await' here. This lets the server respond immediately to the client
-      // with an "uploaded" status while transcription runs in the background.
-      processMeetingPipeline(newMeeting.id, newMeeting.audioPath)
-        .catch((err) => fastify.log.error(`Pipeline error for meeting ${meetingId}:`, err));
-
-      return {
-        meetingId: newMeeting.id,
-        filename: newMeeting.filename,
-        status: newMeeting.status,
-      };
-    }
-  );
-
-  // 3. GET MEETING DETAIL (transcript + summary + action items)
   fastify.get(
     "/meetings/:id",
     {
       schema: {
         tags: ["Meetings"],
-        summary: "Get full meeting detail",
+        summary: "Get full meeting details",
         params: MeetingParamsSchema,
       },
     },
     async (request, reply) => {
       const { id } = request.params as { id: string };
-
-      const meeting = await prisma.meeting.findUnique({
-        where: { id },
-        include: {
-          transcript: {
-            include: {
-              segments: { orderBy: { startMs: "asc" } },
-            },
-          },
-          summary: true,
-          actionItems: { orderBy: { createdAt: "asc" } },
-        },
-      });
+      const meeting = await findMeetingDetail(id);
 
       if (!meeting) {
-        return reply.status(404).send({ error: "Meeting not found" });
+        return reply.status(404).send({
+          error: "Meeting not found",
+        });
       }
 
-      // Re-hydrate the summary's JSON-string columns into real arrays for the client.
-      const summary = meeting.summary
-        ? {
-            attendees: parseJsonArray(meeting.summary.attendees),
-            keyDecisions: parseJsonArray(meeting.summary.keyDecisions),
-            discussionPoints: parseJsonArray(meeting.summary.discussionPoints),
-            openQuestions: parseJsonArray(meeting.summary.openQuestions),
-            nextSteps: parseJsonArray(meeting.summary.nextSteps),
-          }
-        : null;
-
-      return {
-        id: meeting.id,
-        filename: meeting.filename,
-        status: meeting.status,
-        createdAt: meeting.createdAt,
-        transcript: meeting.transcript
-          ? {
-              fullText: meeting.transcript.fullText,
-              segments: meeting.transcript.segments,
-            }
-          : null,
-        summary,
-        actionItems: meeting.actionItems,
-      };
+      return formatMeetingDetail(meeting);
     }
   );
 
-  // 4. ASSIGN REAL NAMES TO DIARIZED SPEAKERS
   fastify.put(
     "/meetings/:id/speakers",
     {
@@ -219,25 +141,46 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
       const transcript = await prisma.transcript.findUnique({
         where: { meetingId: id },
       });
+
       if (!transcript) {
-        return reply.status(404).send({ error: "Transcript not found for this meeting" });
-      }
-
-      // Apply each label → name mapping to the matching segments.
-      let updated = 0;
-      for (const [rawSpeaker, name] of Object.entries(labels)) {
-        const result = await prisma.transcriptSegment.updateMany({
-          where: { transcriptId: transcript.id, speaker: rawSpeaker },
-          data: { speakerName: name },
+        return reply.status(404).send({
+          error: "Transcript not found for this meeting",
         });
-        updated += result.count;
       }
 
-      return { updatedSegments: updated };
+      const updates = Object.entries(labels)
+        .map(([speaker, speakerName]) => ({
+          speaker,
+          speakerName: String(speakerName).trim(),
+        }))
+        .filter((item) => item.speaker && item.speakerName);
+
+      if (updates.length === 0) {
+        return reply.status(400).send({
+          error: "At least one non-empty speaker label and name is required",
+        });
+      }
+
+      const results = await prisma.$transaction(
+        updates.map((item) =>
+          prisma.transcriptSegment.updateMany({
+            where: {
+              transcriptId: transcript.id,
+              speaker: item.speaker,
+            },
+            data: {
+              speakerName: item.speakerName,
+            },
+          })
+        )
+      );
+
+      return {
+        updatedSegments: results.reduce((total, result) => total + result.count, 0),
+      };
     }
   );
 
-  // 5. TOGGLE AN ACTION ITEM'S COMPLETION STATE
   fastify.put(
     "/meetings/:id/action-items/:itemId",
     {
@@ -252,23 +195,109 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
       const { id, itemId } = request.params as { id: string; itemId: string };
       const { completed } = request.body as { completed: boolean };
 
-      const item = await prisma.actionItem.findFirst({
-        where: { id: itemId, meetingId: id },
+      const actionItem = await prisma.actionItem.findFirst({
+        where: {
+          id: itemId,
+          meetingId: id,
+        },
       });
-      if (!item) {
-        return reply.status(404).send({ error: "Action item not found" });
+
+      if (!actionItem) {
+        return reply.status(404).send({
+          error: "Action item not found for this meeting",
+        });
       }
 
-      const updated = await prisma.actionItem.update({
-        where: { id: itemId },
-        data: { completed },
+      return prisma.actionItem.update({
+        where: {
+          id: itemId,
+        },
+        data: {
+          completed,
+        },
       });
-
-      return updated;
     }
   );
 
-  // 6. DELETE A MEETING (DB rows cascade; clean up audio file + search index)
+  fastify.post(
+    "/meetings/upload",
+    {
+      schema: {
+        tags: ["Meetings"],
+        summary: "Upload meeting audio",
+      },
+    },
+    async (request, reply) => {
+      const file = await request.file();
+
+      if (!file) {
+        return reply.status(400).send({
+          error: "No file uploaded",
+        });
+      }
+
+      const originalFilename = sanitizeUploadedFilename(file.filename);
+      const ext = path.extname(originalFilename).toLowerCase();
+
+      if (!ALLOWED_AUDIO_EXTENSIONS.includes(ext as (typeof ALLOWED_AUDIO_EXTENSIONS)[number])) {
+        return reply.status(400).send({
+          error: `Unsupported file type "${ext || "unknown"}". Allowed: ${ALLOWED_AUDIO_EXTENSIONS.join(", ")}`,
+        });
+      }
+
+      const meetingId = randomUUID();
+      const uploadsDir = "uploads";
+      await fsPromises.mkdir(uploadsDir, {
+        recursive: true,
+      });
+
+      const filename = `${meetingId}-${originalFilename}`;
+      const filepath = path.join(uploadsDir, filename);
+
+      const writeStream = fs.createWriteStream(filepath);
+      try {
+        await pipeline(file.file, writeStream);
+      } catch (err) {
+        await fsPromises.unlink(filepath).catch(() => {});
+        throw err;
+      }
+
+      if (file.file.truncated) {
+        await fsPromises.unlink(filepath).catch(() => {});
+        return reply.status(400).send({
+          error: "File exceeds the maximum allowed size.",
+        });
+      }
+
+      const stats = await fsPromises.stat(filepath);
+      if (stats.size === 0) {
+        await fsPromises.unlink(filepath).catch(() => {});
+        return reply.status(400).send({
+          error: "Uploaded file is empty.",
+        });
+      }
+
+      const newMeeting = await prisma.meeting.create({
+        data: {
+          id: meetingId,
+          filename: originalFilename,
+          audioPath: filepath,
+          status: "uploaded",
+        },
+      });
+
+      processMeetingPipeline(newMeeting.id, newMeeting.audioPath).catch((err) =>
+        fastify.log.error(`Pipeline error for meeting ${meetingId}:`, err)
+      );
+
+      return {
+        meetingId: newMeeting.id,
+        filename: newMeeting.filename,
+        status: newMeeting.status,
+      };
+    }
+  );
+
   fastify.delete(
     "/meetings/:id",
     {
@@ -281,25 +310,36 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params as { id: string };
 
-      const meeting = await prisma.meeting.findUnique({ where: { id } });
+      const meeting = await prisma.meeting.findUnique({
+        where: {
+          id,
+        },
+      });
+
       if (!meeting) {
-        return reply.status(404).send({ error: "Meeting not found" });
+        return reply.status(404).send({
+          error: "Meeting not found",
+        });
       }
 
-      // Remove embeddings from the search index (best effort).
       await deleteMeetingEmbeddings(id).catch((err) =>
         fastify.log.error(`Failed to delete embeddings for ${id}:`, err)
       );
 
-      // Cascade deletes transcript / segments / summary / action items.
-      await prisma.meeting.delete({ where: { id } });
+      await prisma.meeting.delete({
+        where: {
+          id,
+        },
+      });
 
-      // Remove the stored audio file (best effort).
       if (meeting.audioPath) {
         await fsPromises.unlink(meeting.audioPath).catch(() => {});
       }
 
-      return reply.status(200).send({ deleted: true, id });
+      return reply.status(200).send({
+        deleted: true,
+        id,
+      });
     }
   );
 }

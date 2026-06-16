@@ -38,6 +38,12 @@ build/
 # Logs
 *.log
 
+# Local runtime files
+uploads/
+reports/
+*.db
+*.db-journal
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -55,7 +61,6 @@ venv/
 coverage/
 
 prisma/migrations
-prisma/breifvoice.db
 
 AI/
 
