@@ -1,12 +1,27 @@
 import PDFDocument from "pdfkit";
 import { prisma } from "../db/prisma";
 
+export class PDFReportError extends Error {
+  constructor(message: string, public readonly statusCode: number) {
+    super(message);
+  }
+}
+
+function safeText(value: string | null | undefined, maxLength = 500) {
+  const cleaned = (value ?? "").replace(/\s+/g, " ").trim();
+  if (cleaned.length <= maxLength) return cleaned;
+  return `${cleaned.slice(0, maxLength - 3)}...`;
+}
+
 function parseJsonArray(value: string | null | undefined): string[] {
   if (!value) return [];
 
   try {
     const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((item) => safeText(String(item)))
+      .filter((item) => item.length > 0);
   } catch {
     return [];
   }
@@ -26,7 +41,15 @@ export async function generatePDFReport(meetingId: string): Promise<Buffer> {
   });
 
   if (!meeting) {
-    throw new Error("Meeting not found");
+    throw new PDFReportError("Meeting not found", 404);
+  }
+
+  if (meeting.status !== "processed") {
+    throw new PDFReportError("Meeting report is available only after processing is complete.", 409);
+  }
+
+  if (!meeting.summary) {
+    throw new PDFReportError("Meeting summary is not available yet.", 409);
   }
 
   const doc = new PDFDocument({ margin: 50, size: "A4" });
@@ -39,7 +62,7 @@ export async function generatePDFReport(meetingId: string): Promise<Buffer> {
 
     doc.fontSize(22).fillColor("#6366f1").text("BriefVoice Meeting Report");
     doc.moveDown(0.5);
-    doc.fontSize(14).fillColor("#111111").text(meeting.filename);
+    doc.fontSize(14).fillColor("#111111").text(safeText(meeting.filename, 120));
     doc
       .fontSize(10)
       .fillColor("#666666")
@@ -82,8 +105,8 @@ export async function generatePDFReport(meetingId: string): Promise<Buffer> {
       doc.fontSize(11).fillColor("#111111");
       for (const item of meeting.actionItems) {
         const checkbox = item.completed ? "[x]" : "[ ]";
-        const meta = [item.owner, item.deadline].filter(Boolean).join(" | ");
-        doc.text(`${checkbox} ${item.task}${meta ? ` (${meta})` : ""}`, { indent: 10 });
+        const meta = [safeText(item.owner, 80), safeText(item.deadline, 80)].filter(Boolean).join(" | ");
+        doc.text(`${checkbox} ${safeText(item.task)}${meta ? ` (${meta})` : ""}`, { indent: 10 });
       }
     }
 
