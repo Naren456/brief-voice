@@ -1,0 +1,158 @@
+import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
+
+const config: Config = {
+  darkMode: "class",
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        // BriefVoice design tokens (Material 3 style naming)
+        background: "#131315",
+        surface: "#131315",
+        "surface-dim": "#131315",
+        "surface-bright": "#39393b",
+        "surface-container-lowest": "#0e0e10",
+        "surface-container-low": "#1c1b1d",
+        "surface-container": "#201f22",
+        "surface-container-high": "#2a2a2c",
+        "surface-container-highest": "#353437",
+        "surface-variant": "#353437",
+        "on-surface": "#e5e1e4",
+        "on-surface-variant": "#c7c4d7",
+        "on-background": "#e5e1e4",
+        "inverse-surface": "#e5e1e4",
+        "inverse-on-surface": "#313032",
+        outline: "#908fa0",
+        "outline-variant": "#464554",
+        "surface-tint": "#c0c1ff",
+        primary: "#c0c1ff",
+        "on-primary": "#1000a9",
+        "primary-container": "#8083ff",
+        "on-primary-container": "#0d0096",
+        "inverse-primary": "#494bd6",
+        "primary-fixed": "#e1e0ff",
+        "primary-fixed-dim": "#c0c1ff",
+        "on-primary-fixed": "#07006c",
+        "on-primary-fixed-variant": "#2f2ebe",
+        secondary: "#d0bcff",
+        "on-secondary": "#3c0091",
+        "secondary-container": "#571bc1",
+        "on-secondary-container": "#c4abff",
+        "secondary-fixed": "#e9ddff",
+        "secondary-fixed-dim": "#d0bcff",
+        "on-secondary-fixed": "#23005c",
+        "on-secondary-fixed-variant": "#5516be",
+        tertiary: "#4edea3",
+        "on-tertiary": "#003824",
+        "tertiary-container": "#00885d",
+        "on-tertiary-container": "#000703",
+        "tertiary-fixed": "#6ffbbe",
+        "tertiary-fixed-dim": "#4edea3",
+        "on-tertiary-fixed": "#002113",
+        "on-tertiary-fixed-variant": "#005236",
+        error: "#ffb4ab",
+        "on-error": "#690005",
+        "error-container": "#93000a",
+        "on-error-container": "#ffdad6",
+      },
+      fontFamily: {
+        sans: ["Geist", "Inter", "system-ui", "sans-serif"],
+        geist: ["Geist", "Inter", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+        "headline-lg": ["Geist", "sans-serif"],
+        "headline-md": ["Geist", "sans-serif"],
+        "body-lg": ["Geist", "sans-serif"],
+        "body-md": ["Geist", "sans-serif"],
+        "display-lg": ["Geist", "sans-serif"],
+        "label-md": ["JetBrains Mono", "monospace"],
+        "label-sm": ["JetBrains Mono", "monospace"],
+      },
+      fontSize: {
+        "display-lg": [
+          "48px",
+          { lineHeight: "1.1", letterSpacing: "-0.04em", fontWeight: "600" },
+        ],
+        "headline-lg": [
+          "32px",
+          { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "600" },
+        ],
+        "headline-md": [
+          "24px",
+          { lineHeight: "1.3", letterSpacing: "-0.01em", fontWeight: "500" },
+        ],
+        "body-lg": [
+          "16px",
+          { lineHeight: "1.6", letterSpacing: "0", fontWeight: "400" },
+        ],
+        "body-md": [
+          "14px",
+          { lineHeight: "1.5", letterSpacing: "0", fontWeight: "400" },
+        ],
+        "label-md": [
+          "12px",
+          { lineHeight: "1.4", letterSpacing: "0.02em", fontWeight: "500" },
+        ],
+        "label-sm": [
+          "10px",
+          { lineHeight: "1.2", letterSpacing: "0.05em", fontWeight: "500" },
+        ],
+      },
+      spacing: {
+        base: "4px",
+        xs: "0.25rem",
+        sm: "0.5rem",
+        md: "1rem",
+        lg: "1.5rem",
+        xl: "2rem",
+        "2xl": "3rem",
+        gutter: "1.5rem",
+        "container-max": "1280px",
+      },
+      borderRadius: {
+        DEFAULT: "0.25rem",
+        sm: "0.125rem",
+        md: "0.375rem",
+        lg: "0.5rem",
+        xl: "0.75rem",
+        "2xl": "1rem",
+      },
+      boxShadow: {
+        dock: "0 -8px 24px rgba(0,0,0,0.45)",
+        ambient: "0 8px 30px rgba(0,0,0,0.35)",
+        "glow-primary": "0 0 24px rgba(192,193,255,0.18)",
+      },
+      keyframes: {
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-up": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        "pulse-wave": {
+          "0%,100%": { transform: "scaleY(1)" },
+          "50%": { transform: "scaleY(0.55)" },
+        },
+        "progress-stripe": {
+          "0%": { backgroundPosition: "0 0" },
+          "100%": { backgroundPosition: "40px 0" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 240ms ease-out",
+        "slide-up": "slide-up 260ms cubic-bezier(0.16,1,0.3,1)",
+        shimmer: "shimmer 2s linear infinite",
+        "pulse-wave": "pulse-wave 1.4s ease-in-out infinite",
+      },
+    },
+  },
+  plugins: [animate],
+};
+
+export default config;
