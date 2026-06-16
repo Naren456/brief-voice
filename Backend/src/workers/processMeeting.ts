@@ -39,6 +39,56 @@ function clampTranscript(text: string, meetingId: string): string {
   return `${text.slice(0, MAX_TRANSCRIPT_CHARS)}\n\n[...transcript truncated for length...]`;
 }
 
+type MeetingPipelinePrismaClient = typeof prisma & {
+  actionItem: {
+    deleteMany: (args: { where: { meetingId: string } }) => Promise<unknown>;
+    createMany: (args: {
+      data: Array<{
+        meetingId: string;
+        task: string;
+        owner: string | null;
+        deadline: string | null;
+        completed: boolean;
+      }>;
+    }) => Promise<unknown>;
+  };
+  meetingSummary: {
+    deleteMany: (args: { where: { meetingId: string } }) => Promise<unknown>;
+    create: (args: {
+      data: {
+        meetingId: string;
+        attendees: string;
+        keyDecisions: string;
+        discussionPoints: string;
+        openQuestions: string;
+        nextSteps: string;
+      };
+    }) => Promise<unknown>;
+  };
+  transcript: {
+    deleteMany: (args: { where: { meetingId: string } }) => Promise<unknown>;
+    create: (args: {
+      data: {
+        meetingId: string;
+        fullText: string;
+      };
+    }) => Promise<{ id: string }>;
+  };
+  transcriptSegment: {
+    createMany: (args: {
+      data: Array<{
+        transcriptId: string;
+        speaker: string;
+        text: string;
+        startMs: number;
+        endMs: number;
+      }>;
+    }) => Promise<unknown>;
+  };
+};
+
+const pipelinePrisma = prisma as MeetingPipelinePrismaClient;
+
 /**
  * Handles the async transcription and AI processing pipeline process.
  */
@@ -51,18 +101,16 @@ export async function processMeetingPipeline(meetingId: string, filePath: string
     });
 
     // Make retries safe if a previous run partially wrote derived records.
-    await prisma.$transaction([
-      prisma.actionItem.deleteMany({ where: { meetingId } }),
-      prisma.meetingSummary.deleteMany({ where: { meetingId } }),
-      prisma.transcript.deleteMany({ where: { meetingId } }),
-    ]);
+    await pipelinePrisma.actionItem.deleteMany({ where: { meetingId } });
+    await pipelinePrisma.meetingSummary.deleteMany({ where: { meetingId } });
+    await pipelinePrisma.transcript.deleteMany({ where: { meetingId } });
 
     console.log(`[Worker] Step 1: Ingesting audio through AssemblyAI for: ${meetingId}`);
     const { fullText, segments } = await transcribeAudio(filePath);
     
     // 2. Persist the transcript core records and chronological segments to SQLite
     console.log(`[Worker] Step 2: Saving transcript data to database...`);
-    const savedTranscript = await prisma.transcript.create({
+    const savedTranscript = await pipelinePrisma.transcript.create({
       data: {
         meetingId: meetingId,
         fullText: fullText,
@@ -70,7 +118,7 @@ export async function processMeetingPipeline(meetingId: string, filePath: string
     });
 
     if (segments.length > 0) {
-      await prisma.transcriptSegment.createMany({
+      await pipelinePrisma.transcriptSegment.createMany({
         data: segments.map((seg) => ({
           transcriptId: savedTranscript.id,
           speaker: seg.speaker,
@@ -98,7 +146,7 @@ export async function processMeetingPipeline(meetingId: string, filePath: string
     const summaryData = await generateSummary(labelledTranscript, uniqueSpeakers);
 
     // Save summary text data objects to SQLite
-    await prisma.meetingSummary.create({
+    await pipelinePrisma.meetingSummary.create({
       data: {
         meetingId: meetingId,
         attendees: JSON.stringify(summaryData.attendees),
@@ -113,7 +161,7 @@ export async function processMeetingPipeline(meetingId: string, filePath: string
     const actionItemsData = await extractActionItems(labelledTranscript);
 
     if (actionItemsData.length > 0) {
-      await prisma.actionItem.createMany({
+      await pipelinePrisma.actionItem.createMany({
         data: actionItemsData.map((item) => ({
           meetingId: meetingId,
           task: item.task,
