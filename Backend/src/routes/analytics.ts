@@ -1,7 +1,26 @@
 import { FastifyInstance } from "fastify";
-import { getAnalyticsOverview, getMeetingAnalytics } from "../services/analytics.service";
+import {
+  getAnalyticsOverview,
+  getMeetingAnalytics,
+  getOverviewStats,
+  getSpeakingTime,
+} from "../services/analytics.service";
+import { MeetingParamsSchema } from "../schemas/meeting";
 
 export default async function analyticsRoutes(fastify: FastifyInstance) {
+  fastify.get(
+    "/analytics",
+    {
+      schema: {
+        tags: ["Analytics"],
+        summary: "Dashboard analytics overview",
+      },
+    },
+    async () => {
+      return getAnalyticsOverview();
+    }
+  );
+
   fastify.get(
     "/analytics/overview",
     {
@@ -11,7 +30,7 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       },
     },
     async () => {
-      return getAnalyticsOverview();
+      return getOverviewStats();
     }
   );
 
@@ -21,6 +40,7 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       schema: {
         tags: ["Analytics"],
         summary: "Get speaking-time analytics for one meeting",
+        params: MeetingParamsSchema,
       },
     },
     async (request, reply) => {
@@ -34,6 +54,21 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       }
 
       return analytics;
+    }
+  );
+
+  fastify.get(
+    "/analytics/meeting/:id/speaking-time",
+    {
+      schema: {
+        tags: ["Analytics"],
+        summary: "Speaking time per speaker for one meeting",
+        params: MeetingParamsSchema,
+      },
+    },
+    async (request) => {
+      const { id } = request.params as { id: string };
+      return getSpeakingTime(id);
     }
   );
 }
