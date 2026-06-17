@@ -27,7 +27,7 @@ You own the **core server infrastructure**: the Fastify API, Prisma database sch
 
 ### Phase 2 — Database Schema & Meeting Pipeline 🔄 (Your Main Task)
 
-- [ ] **Expand Prisma Schema** — Add models for transcript data
+- [x] **Expand Prisma Schema** — Add models for transcript data
   ```prisma
   model Meeting {
     id         String   @id @default(uuid())
@@ -82,17 +82,17 @@ You own the **core server infrastructure**: the Fastify API, Prisma database sch
     createdAt DateTime @default(now())
   }
   ```
-  - [ ] Run `npx prisma migrate dev --name add-transcript-models`
+  - [x] Run `npx prisma migrate dev --name add-transcript-models`
 
-- [ ] **Meeting Processing Worker** — `workers/processMeeting.ts`
-  - [ ] Called after upload — triggers Ritesh's transcription service
-  - [ ] Updates meeting `status` through lifecycle:
+- [x] **Meeting Processing Worker** — `workers/processMeeting.ts`
+  - [x] Called after upload — triggers Ritesh's transcription service
+  - [x] Updates meeting `status` through lifecycle:
     `uploaded → processing → transcribed → processed`
-  - [ ] Stores transcript segments returned by Ritesh's service
-  - [ ] Calls Ritesh's summary + action item service, stores results
+  - [x] Stores transcript segments returned by Ritesh's service
+  - [x] Calls Ritesh's summary + action item service, stores results
 
-- [ ] **Meeting Detail API**
-  - [ ] `GET /meetings/:id` — Return meeting with all related data
+- [x] **Meeting Detail API**
+  - [x] `GET /meetings/:id` — Return meeting with all related data
     ```json
     {
       "id": "uuid",

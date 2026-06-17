@@ -16,7 +16,7 @@ You are responsible for **semantic search** across the meeting archive. This mea
 
 ### Phase 1 — ChromaDB Setup
 
-- [ ] **Install ChromaDB** (local server)
+- [x] **Install ChromaDB** (local server)
   ```bash
   pip install chromadb
   # Run the ChromaDB server
@@ -28,51 +28,51 @@ You are responsible for **semantic search** across the meeting archive. This mea
   npm install chromadb
   ```
 
-- [ ] **Decide on embedding strategy** — Choose one:
+- [x] **Decide on embedding strategy** — Choose one:
   - Option A: Use Gemini Embeddings API (`models/text-embedding-004`)
   - Option B: Use OpenAI embeddings
   - Option C: Use `@xenova/transformers` for local embeddings (no API cost)
 
-- [ ] **Initialize ChromaDB client** in `search.service.ts`
-  - [ ] Connect to ChromaDB instance
-  - [ ] Create collection: `briefvoice_meetings`
-  - [ ] Add metadata filtering support by `meetingId`
+- [x] **Initialize ChromaDB client** in `search.service.ts`
+  - [x] Connect to ChromaDB instance
+  - [x] Create collection: `briefvoice_meetings`
+  - [x] Add metadata filtering support by `meetingId`
 
 ---
 
 ### Phase 2 — Embedding Pipeline
 
-- [ ] **Document chunking** — Split transcript into semantic chunks
-  - [ ] Chunk by speaker segment (already split by AssemblyAI)
-  - [ ] Or chunk by fixed token length (~200 tokens with 50 overlap)
-  - [ ] Add metadata: `{ meetingId, chunkIndex, speaker, timestamp }`
+- [x] **Document chunking** — Split transcript into semantic chunks
+  - [x] Chunk by speaker segment (already split by AssemblyAI)
+  - [x] Or chunk by fixed token length (~200 tokens with 50 overlap)
+  - [x] Add metadata: `{ meetingId, chunkIndex, speaker, timestamp }`
 
-- [ ] **Embedding generation**
-  - [ ] Create: `generateEmbedding(text: string): Promise<number[]>`
-  - [ ] Batch embed all chunks of a meeting
+- [x] **Embedding generation**
+  - [x] Create: `generateEmbedding(text: string): Promise<number[]>`
+  - [x] Batch embed all chunks of a meeting
 
-- [ ] **Index meeting** into ChromaDB
-  - [ ] Create: `indexMeeting(meetingId: string): Promise<void>`
-    - [ ] Fetch transcript from SQLite
-    - [ ] Chunk the transcript
-    - [ ] Generate embeddings for each chunk
-    - [ ] Upsert into ChromaDB collection with metadata
-  - [ ] Trigger `indexMeeting()` after a meeting is fully processed
+- [x] **Index meeting** into ChromaDB
+  - [x] Create: `indexMeeting(meetingId: string): Promise<void>`
+    - [x] Fetch transcript from SQLite
+    - [x] Chunk the transcript
+    - [x] Generate embeddings for each chunk
+    - [x] Upsert into ChromaDB collection with metadata
+  - [x] Trigger `indexMeeting()` after a meeting is fully processed
 
-- [ ] **Delete meeting embeddings** when a meeting is deleted
-  - [ ] Create: `deleteMeetingEmbeddings(meetingId: string): Promise<void>`
+- [x] **Delete meeting embeddings** when a meeting is deleted
+  - [x] Create: `deleteMeetingEmbeddings(meetingId: string): Promise<void>`
 
 ---
 
 ### Phase 3 — Semantic Search API
 
-- [ ] **Search implementation**
-  - [ ] Create: `searchMeetings(query: string, limit?: number): Promise<SearchResult[]>`
-    - [ ] Embed the user's query
-    - [ ] Query ChromaDB for nearest neighbors
-    - [ ] Return relevant chunks with meeting metadata
+- [x] **Search implementation**
+  - [x] Create: `searchMeetings(query: string, limit?: number): Promise<SearchResult[]>`
+    - [x] Embed the user's query
+    - [x] Query ChromaDB for nearest neighbors
+    - [x] Return relevant chunks with meeting metadata
   
-- [ ] **Build search endpoint** in `routes/search.ts`
+- [x] **Build search endpoint** in `routes/search.ts`
   ```http
   GET /search?q=what+was+decided+about+the+API&limit=5
   ```
@@ -90,7 +90,7 @@ You are responsible for **semantic search** across the meeting archive. This mea
   ]
   ```
 
-- [ ] **Meeting-scoped search** *(bonus)*
+- [x] **Meeting-scoped search** *(bonus)*
   ```http
   GET /meetings/:id/search?q=action+items+for+Narendra
   ```

@@ -16,88 +16,88 @@ You are responsible for the **entire frontend experience** of BriefVoice — fro
 
 ### Phase 1 — Project Setup
 
-- [ ] **Initialize React + TypeScript + Vite**
+- [x] **Initialize React + TypeScript + Vite**
   ```bash
   cd Frontend
   npm create vite@latest . -- --template react-ts
   npm install
   ```
-- [ ] **Install core dependencies**
+- [x] **Install core dependencies**
   ```bash
   npm install react-router-dom axios react-dropzone lucide-react
   npm install -D tailwindcss @types/node
   ```
-- [ ] Set up folder structure (see below)
-- [ ] Configure Vite proxy to point `http://localhost:5173/api` → `http://localhost:8000`
-- [ ] Set up `.env` with `VITE_API_BASE_URL=http://localhost:8000`
+- [x] Set up folder structure (see below)
+- [x] Configure Vite proxy to point `http://localhost:5173/api` → `http://localhost:8000`
+- [x] Set up `.env` with `VITE_API_BASE_URL=http://localhost:8000`
 
 ---
 
 ### Phase 2 — Core Pages
 
-- [ ] **App Shell** — Sidebar layout with navigation
-  - [ ] Logo / branding
-  - [ ] Navigation: Upload, Meetings, Search, Analytics
-  - [ ] Responsive hamburger menu for mobile
+- [x] **App Shell** — Sidebar layout with navigation
+  - [x] Logo / branding
+  - [x] Navigation: Upload, Meetings, Search, Analytics
+  - [x] Responsive hamburger menu for mobile
 
-- [ ] **Upload Page** (`/upload`)
-  - [ ] Drag-and-drop audio file upload (using `react-dropzone`)
-  - [ ] Support: `.mp3`, `.wav`, `.m4a`
-  - [ ] Upload progress bar with percentage
-  - [ ] File validation with error messages
-  - [ ] Success state with redirect to meeting page
-  - [ ] Processing status display (uploaded → processing → transcribed → processed)
+- [x] **Upload Page** (`/upload`)
+  - [x] Drag-and-drop audio file upload (using `react-dropzone`)
+  - [x] Support: `.mp3`, `.wav`, `.m4a`
+  - [x] Upload progress bar with percentage
+  - [x] File validation with error messages
+  - [x] Success state with redirect to meeting page
+  - [x] Processing status display (uploaded → processing → transcribed → processed)
 
-- [ ] **Meetings Archive Page** (`/meetings`)
-  - [ ] List all meetings as cards
-  - [ ] Show: filename, date, status, duration
-  - [ ] Status badge (color-coded: uploaded, processing, processed)
-  - [ ] Click card → navigate to meeting detail
-  - [ ] Search/filter bar for local filtering
+- [x] **Meetings Archive Page** (`/meetings`)
+  - [x] List all meetings as cards
+  - [x] Show: filename, date, status, duration
+  - [x] Status badge (color-coded: uploaded, processing, processed)
+  - [x] Click card → navigate to meeting detail
+  - [x] Search/filter bar for local filtering
 
-- [ ] **Meeting Detail Page** (`/meetings/:id`)
-  - [ ] Meeting title and metadata header
-  - [ ] **Transcript Tab** — Scrollable transcript with speaker-labelled segments
-    - [ ] Each segment shows: speaker name, timestamp, text
-    - [ ] Click speaker label → open rename modal
-    - [ ] Auto-scroll or jump-to-timestamp feature
-  - [ ] **Summary Tab** — Display structured summary
-    - [ ] Attendees list
-    - [ ] Key Decisions (bullet list)
-    - [ ] Discussion Points
-    - [ ] Open Questions
-    - [ ] Next Steps
-  - [ ] **Action Items Tab** — Checkable task list
-    - [ ] Checkbox to mark complete
-    - [ ] Show: task, owner, deadline
-    - [ ] Visual strike-through on completion
-  - [ ] **Download PDF** button → trigger PDF export
+- [x] **Meeting Detail Page** (`/meetings/:id`)
+  - [x] Meeting title and metadata header
+  - [x] **Transcript Tab** — Scrollable transcript with speaker-labelled segments
+    - [x] Each segment shows: speaker name, timestamp, text
+    - [x] Click speaker label → open rename modal
+    - [x] Auto-scroll or jump-to-timestamp feature
+  - [x] **Summary Tab** — Display structured summary
+    - [x] Attendees list
+    - [x] Key Decisions (bullet list)
+    - [x] Discussion Points
+    - [x] Open Questions
+    - [x] Next Steps
+  - [x] **Action Items Tab** — Checkable task list
+    - [x] Checkbox to mark complete
+    - [x] Show: task, owner, deadline
+    - [x] Visual strike-through on completion
+  - [x] **Download PDF** button → trigger PDF export
 
 ---
 
 ### Phase 3 — Search & Analytics UI
 
-- [ ] **Search Page** (`/search`)
-  - [ ] Natural language search input
-  - [ ] Real-time results as user types (debounced)
-  - [ ] Result cards showing: meeting name, matched snippet, date
-  - [ ] Click result → navigate to that meeting
+- [x] **Search Page** (`/search`)
+  - [x] Natural language search input
+  - [x] Real-time results as user types (debounced)
+  - [x] Result cards showing: meeting name, matched snippet, date
+  - [x] Click result → navigate to that meeting
 
-- [ ] **Analytics Page** (`/analytics`) *(coordinate with Yatharth)*
-  - [ ] Speaking time per speaker — horizontal bar chart
-  - [ ] Meeting frequency over time — line chart
-  - [ ] Action item completion rate — donut/pie chart
-  - [ ] Recurring topics — tag cloud or frequency list
+- [x] **Analytics Page** (`/analytics`) *(coordinate with Yatharth)*
+  - [x] Speaking time per speaker — horizontal bar chart
+  - [x] Meeting frequency over time — line chart
+  - [x] Action item completion rate — donut/pie chart
+  - [x] Recurring topics — tag cloud or frequency list
 
 ---
 
 ### Phase 4 — Polish
 
-- [ ] Add loading skeletons for all data-fetching states
-- [ ] Add error states with retry buttons
-- [ ] Smooth page transitions using Framer Motion
-- [ ] Dark mode toggle
-- [ ] Responsive design — works on mobile, tablet, desktop
+- [x] Add loading skeletons for all data-fetching states
+- [x] Add error states with retry buttons
+- [x] Smooth page transitions using Framer Motion
+- [x] Dark mode toggle
+- [x] Responsive design — works on mobile, tablet, desktop
 - [ ] Empty states (e.g., "No meetings yet — upload your first!")
 
 ---

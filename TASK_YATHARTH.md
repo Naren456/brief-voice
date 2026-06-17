@@ -16,27 +16,27 @@ You are responsible for **meeting analytics** and ensuring the project **runs re
 
 ### Phase 1 — MVP Analytics (Core Priority)
 
-- [ ] **Speaking Time per Participant**
-  - [ ] Use the `TranscriptSegment` data (from Ritesh) which has `startMs` and `endMs`
-  - [ ] Calculate total speaking duration per speaker label
-  - [ ] Create: `GET /analytics/meeting/:id` — Per-meeting breakdown
+- [x] **Speaking Time per Participant**
+  - [x] Use the `TranscriptSegment` data (from Ritesh) which has `startMs` and `endMs`
+  - [x] Calculate total speaking duration per speaker label
+  - [x] Create: `GET /analytics/meeting/:id` — Per-meeting breakdown
 
-- [ ] **Meeting Overview Stats**
-  - [ ] Total meetings count
-  - [ ] Total action items and how many are completed
-  - [ ] Create: `GET /analytics/overview` — Dashboard summary numbers
+- [x] **Meeting Overview Stats**
+  - [x] Total meetings count
+  - [x] Total action items and how many are completed
+  - [x] Create: `GET /analytics/overview` — Dashboard summary numbers
 
-- [ ] **Action Item Completion Rate**
-  - [ ] Use action items from Narendra's Prisma table
-  - [ ] Compute: `completedCount / totalCount * 100`
-  - [ ] Include in `GET /analytics/overview`
+- [x] **Action Item Completion Rate**
+  - [x] Use action items from Narendra's Prisma table
+  - [x] Compute: `completedCount / totalCount * 100`
+  - [x] Include in `GET /analytics/overview`
 
 ---
 
 ### Phase 2 — Dev Setup & Environment (Very Important for Team)
 
-- [ ] **Write a proper local setup script** — So every team member can run the project in one shot
-  - [ ] Create `setup.sh` in the root
+- [x] **Write a proper local setup script** — So every team member can run the project in one shot
+  - [x] Create `setup.sh` in the root
     ```bash
     #!/bin/bash
     cd Backend
@@ -46,19 +46,19 @@ You are responsible for **meeting analytics** and ensuring the project **runs re
     npx prisma migrate dev --name init
     echo "✅ Setup complete. Run: npm run dev"
     ```
-  - [ ] Test it on a fresh clone
+  - [x] Test it on a fresh clone
 
-- [ ] **Docker Compose** *(do this only if time allows after MVP is working)*
-  - [ ] `Dockerfile` for the backend
-  - [ ] `docker-compose.yml` with backend + ChromaDB services
+- [x] **Docker Compose** *(do this only if time allows after MVP is working)*
+  - [x] `Dockerfile` for the backend
+  - [x] `docker-compose.yml` with backend + ChromaDB services
 
 ---
 
 ### Phase 3 — Stretch Goals *(Only after MVP features work)*
 
-- [ ] Recurring topics detection (use Narendra's topic extraction output)
-- [ ] Meeting frequency tracking over time
-- [ ] Simple bar chart data endpoint for the frontend
+- [x] Recurring topics detection (use Narendra's topic extraction output)
+- [x] Meeting frequency tracking over time
+- [x] Simple bar chart data endpoint for the frontend
 
 ---
 

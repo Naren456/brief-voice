@@ -50,12 +50,12 @@ Information loss in meetings costs teams real velocity:
 
 | Feature | Description | Status |
 |---|---|---|
-| 🎤 **Audio Transcription** | Transcribe uploaded audio files using AssemblyAI. Handles multiple speakers, background noise, and technical vocabulary | 🔄 In Progress |
-| 👥 **Speaker Diarization** | Identify and label different speakers. Allow users to assign names to speaker labels post-processing | 🔄 In Progress |
-| ✅ **Action Item Extraction** | Extract commitments with task, owner, and deadline. Present as a structured, checkable list | 🔄 In Progress |
-| 📄 **Structured Summary** | Generate meeting summary with sections: attendees, key decisions, discussion points, open questions, next steps | 🔄 In Progress |
-| 🔍 **Searchable Archive** | Index all transcripts and summaries. Support natural language queries across the full archive | 📅 Planned |
-| 📊 **Meeting Analytics** | Track speaking time, meeting frequency, action item completion rate, and recurring topics | 📅 Planned |
+| 🎤 **Audio Transcription** | Transcribe uploaded audio files using AssemblyAI. Handles multiple speakers, background noise, and technical vocabulary | ✅ Complete |
+| 👥 **Speaker Diarization** | Identify and label different speakers. Allow users to assign names to speaker labels post-processing | ✅ Complete |
+| ✅ **Action Item Extraction** | Extract commitments with task, owner, and deadline. Present as a structured, checkable list | ✅ Complete |
+| 📄 **Structured Summary** | Generate meeting summary with sections: attendees, key decisions, discussion points, open questions, next steps | ✅ Complete |
+| 🔍 **Searchable Archive** | Index all transcripts and summaries. Support natural language queries across the full archive | ✅ Complete |
+| 📊 **Meeting Analytics** | Track speaking time, meeting frequency, action item completion rate, and recurring topics | ✅ Complete |
 
 ---
 
@@ -73,7 +73,7 @@ Information loss in meetings costs teams real velocity:
 │                    ┌──────────┘    ┌──────┘    ┌─────┘          │
 │                    ▼               ▼            ▼                │
 │             ┌─────────┐    ┌──────────┐  ┌──────────┐          │
-│             │AssemblyAI│    │  Gemini  │  │ ChromaDB  │          │
+│             │AssemblyAI│    │OpenRouter│  │  Qdrant  │          │
 │             │(Transcr.)│    │   LLM    │  │(Vector DB)│          │
 │             └─────────┘    └──────────┘  └──────────┘          │
 │                    │               │            │                │
@@ -103,8 +103,8 @@ Information loss in meetings costs teams real velocity:
 | Service | Purpose |
 |---|---|
 | **AssemblyAI** | Audio transcription + Speaker diarization |
-| **Google Gemini** | Summarization + Action item extraction |
-| **ChromaDB** | Vector embeddings for semantic search |
+| **OpenRouter / OpenAI** | Summarization + Action item extraction (gpt-4o-mini) |
+| **Qdrant** | Vector database for semantic search embeddings |
 
 ### Frontend
 | Technology | Purpose |
@@ -213,11 +213,11 @@ BriefVoice/
 - Build PDF report generation service
 
 **Deliverables:**
-- 🔄 `gemini.service.ts` — Full Gemini integration
-- 🔄 Structured summary generation endpoint
-- 🔄 Action item extraction with checkable list format
-- 🔄 PDF export of meeting reports
-- 📅 Topic extraction for analytics
+- ✅ Full integration (OpenRouter via `openai.service.ts`)
+- ✅ Structured summary generation endpoint
+- ✅ Action item extraction with checkable list format
+- ✅ PDF export of meeting reports
+- ✅ Zod Runtime Guardrails for AI output
 
 📂 **Primary files:** `Backend/src/services/gemini.service.ts`, `Backend/src/services/pdf.service.ts`, `Backend/src/routes/meetings.ts` (summary endpoints)
 
@@ -235,12 +235,12 @@ BriefVoice/
 - Ensure responsive design across devices
 
 **Deliverables:**
-- 📅 React app scaffold with routing
-- 📅 Audio upload page with progress tracking
-- 📅 Meeting list / archive page
-- 📅 Meeting detail page (transcript + summary + action items)
-- 📅 Speaker label assignment UI
-- 📅 Responsive mobile-friendly layout
+- ✅ React app scaffold with routing
+- ✅ Audio upload page with progress tracking
+- ✅ Meeting list / archive page
+- ✅ Meeting detail page (transcript + summary + action items)
+- ✅ Speaker label assignment UI
+- ✅ Responsive mobile-friendly layout
 
 📂 **Primary files:** `Frontend/` (full ownership)
 
@@ -256,11 +256,11 @@ BriefVoice/
 - Optimize retrieval relevance and search performance
 
 **Deliverables:**
-- 📅 ChromaDB setup and integration
-- 📅 `search.service.ts` — Embedding generation + semantic search
-- 📅 `GET /search?q=...` natural language search endpoint
-- 📅 Relevant meeting snippet retrieval
-- 📅 Search results ranking and display
+- ✅ Qdrant local setup via docker-compose
+- ✅ `search.service.ts` — Embedding generation + semantic search
+- ✅ `GET /search?q=...` natural language search endpoint
+- ✅ Relevant meeting snippet retrieval
+- ✅ Search results ranking and display
 
 📂 **Primary files:** `Backend/src/services/search.service.ts`, `Backend/src/routes/search.ts`, `Backend/src/schemas/search.ts`
 
@@ -277,12 +277,12 @@ BriefVoice/
 - Manage Docker containerization for deployment
 
 **Deliverables:**
-- 📅 `analytics.ts` — Analytics routes
-- 📅 Speaking time calculation from transcript segments
-- 📅 Action item completion tracking
-- 📅 Recurring topics detection
-- 📅 Docker + docker-compose setup
-- 📅 Deployment documentation
+- ✅ `analytics.ts` — Analytics routes
+- ✅ Speaking time calculation from transcript segments
+- ✅ Action item completion tracking
+- ✅ Recurring topics detection (Mocked for MVP)
+- ✅ Docker + docker-compose setup
+- ✅ API deployment endpoints connected to React UI
 
 📂 **Primary files:** `Backend/src/routes/analytics.ts`, `Backend/src/services/analytics.service.ts` (new), deployment configs
 
@@ -341,10 +341,10 @@ The server will start at:
 - **API:** `http://localhost:8000`
 - **Swagger Docs:** `http://localhost:8000/docs`
 
-### 6. Frontend Setup *(Coming Soon)*
+### 6. Frontend Setup
 
 ```bash
-cd ../Frontend
+cd Frontend
 npm install
 npm run dev
 ```
@@ -398,7 +398,7 @@ GET /meetings
 
 ---
 
-### Get Meeting Details *(Planned)*
+### Get Meeting Details
 ```http
 GET /meetings/:id
 ```
@@ -406,7 +406,7 @@ Returns full transcript, speaker segments, summary, and action items.
 
 ---
 
-### Semantic Search *(Planned)*
+### Semantic Search
 ```http
 GET /search?q=what+was+decided+about+the+API+design
 ```
@@ -414,7 +414,7 @@ Returns relevant transcript snippets from across all meetings.
 
 ---
 
-### Analytics *(Planned)*
+### Analytics
 ```http
 GET /analytics/overview
 GET /analytics/meeting/:id
@@ -452,16 +452,16 @@ GET /analytics/meeting/:id
 
 | Day | Date | Milestone | Owner |
 |---|---|---|---|
-| Day 1 | Jun 8 (Today) | ✅ Server running, Upload API, DB schema finalized | Narendra |
-| Day 2 | Jun 9 | AssemblyAI transcription + speaker diarization working | Ritesh |
-| Day 3 | Jun 10 | Gemini summaries + action item extraction | Ritesh |
-| Day 3 | Jun 10 | Frontend scaffold + Upload page + Meeting list | Harshita |
-| Day 4 | Jun 11 | Meeting detail page (transcript + summary + action items) | Harshita |
-| Day 4 | Jun 11 | ChromaDB setup + semantic search endpoint | Mohit |
-| Day 5 | Jun 12 | Analytics endpoints (speaking time + action item stats) | Yatharth |
-| Day 5 | Jun 12 | Frontend search page + analytics charts | Harshita |
-| Day 6 | Jun 13 | Full integration testing + bug fixes | All |
-| Day 7 | Jun 14 | Polish, PDF export, demo prep | All |
+| Day 1 | Jun 8 | ✅ Server running, Upload API, DB schema finalized | Narendra |
+| Day 2 | Jun 9 | ✅ AssemblyAI transcription + speaker diarization working | Ritesh |
+| Day 3 | Jun 10 | ✅ OpenRouter summaries + action item extraction | Ritesh |
+| Day 3 | Jun 10 | ✅ Frontend scaffold + Upload page + Meeting list | Harshita |
+| Day 4 | Jun 11 | ✅ Meeting detail page (transcript + summary + action items) | Harshita |
+| Day 4 | Jun 11 | ✅ Qdrant setup + semantic search endpoint | Mohit |
+| Day 5 | Jun 12 | ✅ Analytics endpoints (speaking time + action item stats) | Yatharth |
+| Day 5 | Jun 12 | ✅ Frontend search page + analytics charts | Harshita |
+| Day 6 | Jun 13 | ✅ Full frontend-backend integration + guardrails | All |
+| Day 7 | Jun 14 | ✅ Polish, PDF export, docker containers | All |
 
 ---
 

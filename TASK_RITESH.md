@@ -16,17 +16,17 @@ You own all **AI and ML integrations**: transcribing audio with AssemblyAI, iden
 
 ### Phase 1 — AssemblyAI Transcription + Diarization 🔄 (Start Here)
 
-- [ ] **Install AssemblyAI SDK** (already in `package.json`, just verify)
+- [x] **Install AssemblyAI SDK** (already in `package.json`, just verify)
   ```bash
   cd Backend
   npm install
   ```
 
-- [ ] **Complete `assemblyai.service.ts`**
-  - [ ] Initialize client with `process.env.ASSEMBLYAI_API_KEY`
-  - [ ] Upload local audio file to AssemblyAI (get a remote URL)
-  - [ ] Submit for transcription with speaker diarization enabled
-  - [ ] Poll until complete, return structured result
+- [x] **Complete `assemblyai.service.ts`**
+  - [x] Initialize client with `process.env.ASSEMBLYAI_API_KEY`
+  - [x] Upload local audio file to AssemblyAI (get a remote URL)
+  - [x] Submit for transcription with speaker diarization enabled
+  - [x] Poll until complete, return structured result
 
   ```typescript
   // src/services/assemblyai.service.ts
@@ -64,15 +64,15 @@ You own all **AI and ML integrations**: transcribing audio with AssemblyAI, iden
 
 ### Phase 2 — Gemini Summaries + Action Items 🔄
 
-- [ ] **Install Gemini SDK**
+- [x] **Install Gemini SDK**
   ```bash
   cd Backend
   npm install @google/generative-ai
   ```
 
-- [ ] **Complete `gemini.service.ts`**
+- [x] **Complete `gemini.service.ts`**
 
-  - [ ] **`generateSummary(transcript, speakers)`** — Returns structured JSON:
+  - [x] **`generateSummary(transcript, speakers)`** — Returns structured JSON:
     ```json
     {
       "attendees": ["Narendra", "Ritesh"],
@@ -83,7 +83,7 @@ You own all **AI and ML integrations**: transcribing audio with AssemblyAI, iden
     }
     ```
 
-  - [ ] **`extractActionItems(transcript)`** — Returns array:
+  - [x] **`extractActionItems(transcript)`** — Returns array:
     ```json
     [
       { "task": "Set up Prisma schema", "owner": "Narendra", "deadline": "Friday", "completed": false },
