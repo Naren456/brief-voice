@@ -5,8 +5,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL") // e.g., "file:./briefvoice.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 /// 1. Core Meeting Model
