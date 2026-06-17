@@ -2,10 +2,14 @@ import "dotenv/config";
 import { QdrantClient } from "@qdrant/js-client-rest";
 
 const QDRANT_URL = process.env.QDRANT_URL ?? "http://localhost:6333";
+const QDRANT_API_KEY = process.env.QDRANT_API_KEY;
 export const QDRANT_COLLECTION = process.env.QDRANT_COLLECTION ?? "briefvoice_meetings";
 export const VECTOR_SIZE = 384; // all-MiniLM-L6-v2 output dimension
 
-export const qdrant = new QdrantClient({ url: QDRANT_URL });
+export const qdrant = new QdrantClient({ 
+  url: QDRANT_URL,
+  ...(QDRANT_API_KEY ? { apiKey: QDRANT_API_KEY } : {})
+});
 
 /**
  * Ensures the Qdrant collection exists with the correct vector config.
