@@ -2,6 +2,7 @@
 
 import "dotenv/config";
 import OpenAI from "openai";
+import { z } from "zod";
 
 let openrouter: OpenAI | null = null;
 
@@ -118,6 +119,27 @@ export interface OpenAIActionItemOutput {
   deadline: string | null;
 }
 
+// --- 3. ZOD RUNTIME GUARDRAILS ---
+// These ensure the LLM output is structurally sound and type-safe at runtime.
+
+const ZodSummarySchema = z.object({
+  attendees: z.array(z.string()),
+  keyDecisions: z.array(z.string()),
+  discussionPoints: z.array(z.string()),
+  openQuestions: z.array(z.string()),
+  nextSteps: z.array(z.string()),
+});
+
+const ZodActionItemsResponseSchema = z.object({
+  items: z.array(
+    z.object({
+      task: z.string(),
+      owner: z.string(),
+      deadline: z.string(),
+    })
+  ),
+});
+
 /**
  * Parses a conversation transcript using OpenRouter to generate a structured summary.
  */
@@ -150,7 +172,11 @@ export async function generateSummary(transcriptText: string, identifiedSpeakers
     const content = response.choices[0]?.message?.content;
     if (!content) throw new Error("Received empty response from OpenRouter gateway.");
     
-    return JSON.parse(content) as OpenAISummaryOutput;
+    // GUARDRAIL: Validate the JSON structure at runtime using Zod
+    const rawData = JSON.parse(content);
+    const validatedData = ZodSummarySchema.parse(rawData);
+    
+    return validatedData as OpenAISummaryOutput;
   } catch (error) {
     console.error("[OpenRouter Service] Error generating summary:", error);
     return {
@@ -194,10 +220,12 @@ export async function extractActionItems(transcriptText: string): Promise<OpenAI
     const content = response.choices[0]?.message?.content;
     if (!content) throw new Error("Received empty response from OpenRouter gateway.");
 
-    const parsed = JSON.parse(content) as { items: Array<{ task: string; owner: string; deadline: string }> };
+    // GUARDRAIL: Validate the JSON structure at runtime using Zod
+    const rawData = JSON.parse(content);
+    const validatedData = ZodActionItemsResponseSchema.parse(rawData);
     
     // Normalize empty strings back to null values to match our relational Prisma schema layout
-    return parsed.items.map((item) => ({
+    return validatedData.items.map((item) => ({
       task: item.task,
       owner: item.owner.trim() === "" ? null : item.owner,
       deadline: item.deadline.trim() === "" ? null : item.deadline,

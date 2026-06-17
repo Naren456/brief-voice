@@ -50,12 +50,55 @@ function findMeetingDetail(id: string) {
   });
 }
 
+function computeMeetingMetrics(meeting: any) {
+  const segments = meeting.transcript?.segments || [];
+  const durationMs = segments.length > 0 ? Math.max(...segments.map((s: any) => s.endMs)) : 0;
+  const speakers = new Set(segments.map((s: any) => s.speaker));
+  const actionItems = meeting.actionItems || [];
+  
+  let summarySnippet = undefined;
+  if (meeting.summary?.discussionPoints) {
+    const pts = parseJsonArray(meeting.summary.discussionPoints);
+    if (pts.length > 0) summarySnippet = pts[0];
+  }
+
+  return {
+    title: meeting.filename.replace(/\.[a-z0-9]+$/i, ""),
+    durationMs,
+    speakerCount: speakers.size,
+    actionItemCount: actionItems.length,
+    summarySnippet,
+  };
+}
+
 function formatMeetingDetail(meeting: NonNullable<Awaited<ReturnType<typeof findMeetingDetail>>>) {
+  const metrics = computeMeetingMetrics(meeting);
+  
+  // Calculate speaking time breakdown
+  const segments = meeting.transcript?.segments || [];
+  const speakerTimes: Record<string, number> = {};
+  for (const seg of segments) {
+    const dur = seg.endMs - seg.startMs;
+    speakerTimes[seg.speaker] = (speakerTimes[seg.speaker] || 0) + dur;
+  }
+  
+  const totalSpeakingMs = Object.values(speakerTimes).reduce((a, b) => a + b, 0);
+  const speakingTime = Object.entries(speakerTimes).map(([speaker, ms]) => ({
+    speaker,
+    ms,
+    percent: totalSpeakingMs > 0 ? (ms / totalSpeakingMs) * 100 : 0
+  })).sort((a, b) => b.ms - a.ms);
+
   return {
     id: meeting.id,
     filename: meeting.filename,
+    title: metrics.title,
     status: meeting.status,
     createdAt: meeting.createdAt,
+    durationMs: metrics.durationMs,
+    speakerCount: metrics.speakerCount,
+    actionItemCount: metrics.actionItemCount,
+    summarySnippet: metrics.summarySnippet,
     transcript: meeting.transcript
       ? {
           fullText: meeting.transcript.fullText,
@@ -72,6 +115,8 @@ function formatMeetingDetail(meeting: NonNullable<Awaited<ReturnType<typeof find
         }
       : null,
     actionItems: meeting.actionItems,
+    speakingTime,
+    keywordFrequency: [] // Keyword extraction isn't implemented in backend MVP, return empty to prevent crashes
   };
 }
 
@@ -98,10 +143,30 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
       },
     },
     async () => {
-      return prisma.meeting.findMany({
+      const meetings = await prisma.meeting.findMany({
         orderBy: {
           createdAt: "desc",
         },
+        include: {
+          transcript: { include: { segments: true } },
+          summary: true,
+          actionItems: true,
+        }
+      });
+
+      return meetings.map(m => {
+        const metrics = computeMeetingMetrics(m);
+        return {
+          id: m.id,
+          filename: m.filename,
+          title: metrics.title,
+          status: m.status,
+          createdAt: m.createdAt,
+          durationMs: metrics.durationMs,
+          speakerCount: metrics.speakerCount,
+          actionItemCount: metrics.actionItemCount,
+          summarySnippet: metrics.summarySnippet,
+        };
       });
     }
   );

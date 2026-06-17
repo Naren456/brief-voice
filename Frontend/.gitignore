@@ -54,3 +54,5 @@ coverage
 .parcel-cache
 .turbo
 .history
+
+node_modules

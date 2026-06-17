@@ -22,7 +22,6 @@ model Meeting {
   transcript  Transcript?
   summary     MeetingSummary?
   actionItems ActionItem[]
-  embeddings  Embedding[]
 }
 
 /// 2. Transcript Model
@@ -90,22 +89,3 @@ model ActionItem {
   @@index([meetingId])
 }
 
-/// 6. Embedding Model
-/// Stores vector embeddings of transcript/summary chunks for semantic search.
-/// Vectors are persisted as JSON-stringified float arrays; cosine similarity
-/// is computed in the application layer (SQLite has no native vector type).
-model Embedding {
-  id        String  @id @default(uuid())
-  meetingId String
-  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-
-  chunkType String  // "transcript" | "summary"
-  speaker   String? // Speaker label for transcript chunks
-  startMs   Int? // Segment start for jump-to-timestamp on results
-  text      String // The chunk text returned as the result snippet
-  vector    String // JSON-stringified number[] embedding
-
-  createdAt DateTime @default(now())
-
-  @@index([meetingId])
-}

@@ -1,4 +1,4 @@
-import { api, USE_MOCK_API } from "./api";
+import { api } from "./api";
 import type { Settings } from "@/types/settings";
 
 const GB = 1024 ** 3;
@@ -147,28 +147,21 @@ function delay<T>(value: T, ms = 250): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
 }
 
+// Backend does not currently implement a settings API route, so we use local default state.
 export const settingsService = {
   async get(): Promise<Settings> {
-    if (USE_MOCK_API) return delay(DEFAULT_SETTINGS);
-    const { data } = await api.get<Settings>("/settings");
-    return data;
+    return delay(DEFAULT_SETTINGS);
   },
 
   async save(settings: Settings): Promise<Settings> {
-    if (USE_MOCK_API) return delay(settings, 450);
-    const { data } = await api.put<Settings>("/settings", settings);
-    return data;
+    return delay(settings, 450);
   },
 
   async resetSection<K extends keyof Settings>(section: K): Promise<Settings[K]> {
-    if (USE_MOCK_API) return delay(DEFAULT_SETTINGS[section]);
-    const { data } = await api.post<Settings[K]>(`/settings/${section}/reset`, null);
-    return data;
+    return delay(DEFAULT_SETTINGS[section]);
   },
 
   async runDangerousAction(action: string): Promise<{ ok: true; action: string }> {
-    if (USE_MOCK_API) return delay({ ok: true as const, action }, 600);
-    const { data } = await api.post(`/settings/actions/${action}`, null);
-    return data;
+    return delay({ ok: true as const, action }, 600);
   },
 };
