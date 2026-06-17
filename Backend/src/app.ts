@@ -15,15 +15,14 @@ import meetingRoutes from "./routes/meetings";
 import searchRoutes from "./routes/search";
 import analyticsRoutes from "./routes/analytics";
 
-const app = Fastify({
-  logger: true,
-}).withTypeProvider<ZodTypeProvider>();
+export async function buildApp() {
+  const app = Fastify({
+    logger: true,
+  }).withTypeProvider<ZodTypeProvider>();
 
-// Use Zod for request validation and response serialization across all routes.
-app.setValidatorCompiler(validatorCompiler);
-app.setSerializerCompiler(serializerCompiler);
-
-async function start() {
+  // Use Zod for request validation and response serialization across all routes.
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
   // Allow the Vite frontend (and any browser origin in dev) to call the API.
   await app.register(cors, {
     origin: true,
@@ -66,20 +65,5 @@ async function start() {
     };
   });
 
-  try {
-    const port = Number(process.env.PORT ?? 8000);
-
-    await app.listen({
-      port,
-      host: "0.0.0.0",
-    });
-
-    console.log(`Server running on port ${port}`);
-    console.log(`Swagger: http://localhost:${port}/docs`);
-  } catch (error) {
-    app.log.error(error);
-    process.exit(1);
-  }
+  return app;
 }
-
-start();

@@ -348,7 +348,7 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
       }
 
       const meetingId = randomUUID();
-      const uploadsDir = "uploads";
+      const uploadsDir = process.env.VERCEL ? "/tmp" : "uploads";
       await fsPromises.mkdir(uploadsDir, {
         recursive: true,
       });
@@ -388,9 +388,19 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
         },
       });
 
-      processMeetingPipeline(newMeeting.id, newMeeting.audioPath).catch((err) =>
-        fastify.log.error(`Pipeline error for meeting ${meetingId}:`, err)
-      );
+      // Await pipeline on Vercel so the serverless function doesn't freeze and kill the background process.
+      // Note: This may cause 504 timeouts if transcription exceeds 10s-60s limit depending on Vercel Tier.
+      if (process.env.VERCEL) {
+        try {
+          await processMeetingPipeline(newMeeting.id, newMeeting.audioPath);
+        } catch (err) {
+          fastify.log.error(`Pipeline error for meeting ${meetingId}:`, err);
+        }
+      } else {
+        processMeetingPipeline(newMeeting.id, newMeeting.audioPath).catch((err) =>
+          fastify.log.error(`Pipeline error for meeting ${meetingId}:`, err)
+        );
+      }
 
       return {
         meetingId: newMeeting.id,
