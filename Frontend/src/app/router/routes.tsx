@@ -31,30 +31,32 @@ function Page({ children }: { children: React.ReactNode }) {
 
 import { Landing } from "@/pages/Landing";
 
-function AppLayout() {
-  return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
-  );
-}
-
 export function AppRoutes() {
   const location = useLocation();
+  const isLanding = location.pathname === "/";
+
+  if (isLanding) {
+    return (
+      <AnimatePresence mode="wait" initial={false}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Page><Landing /></Page>} />
+        </Routes>
+      </AnimatePresence>
+    );
+  }
+
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Page><Landing /></Page>} />
-        
-        <Route element={<AppLayout />}>
+    <AppShell>
+      <AnimatePresence mode="wait" initial={false}>
+        <Routes location={location} key={location.pathname}>
           <Route path="/dashboard" element={<Page><Home /></Page>} />
           <Route path="/vault" element={<Page><Vault /></Page>} />
           <Route path="/meeting/:id" element={<Page><MeetingDetail /></Page>} />
           <Route path="/analytics" element={<Page><Analytics /></Page>} />
           <Route path="/settings" element={<Page><Settings /></Page>} />
           <Route path="*" element={<Page><NotFound /></Page>} />
-        </Route>
-      </Routes>
-    </AnimatePresence>
+        </Routes>
+      </AnimatePresence>
+    </AppShell>
   );
 }
