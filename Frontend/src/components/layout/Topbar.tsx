@@ -1,9 +1,9 @@
-import { Bell, Search, Share2, FileDown } from "lucide-react";
+import { Bell, Share2, FileDown, Loader2, Menu } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Kbd } from "@/components/ui/Kbd";
-import { useMeetingUIStore } from "@/store/meeting.store";
+import { api } from "@/services/api";
+import { MobileSidebar } from "./MobileSidebar";
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
   "/": {
@@ -24,8 +24,12 @@ const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
 export function Topbar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const setVaultQuery = useMeetingUIStore((s) => s.setVaultQuery);
+  const [exporting, setExporting] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // Extract meeting ID from path if we're on a meeting detail page
+  const meetingMatch = location.pathname.match(/^\/meeting\/(.+)$/);
+  const meetingId = meetingMatch?.[1] ?? null;
 
   const meta =
     ROUTE_TITLES[location.pathname] ??
@@ -37,17 +41,50 @@ export function Topbar() {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        inputRef.current?.focus();
+        navigate("/vault");
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [navigate]);
+
+  const handleExport = async () => {
+    if (!meetingId || exporting) return;
+    setExporting(true);
+    try {
+      const response = await api.get(`/meetings/${meetingId}/report`, {
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data as BlobPart], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `meeting-${meetingId}-report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn("[export] PDF generation failed", err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-surface/85 backdrop-blur-md border-b border-outline-variant flex items-center justify-between px-lg gap-lg">
-      <div className="flex items-center gap-lg min-w-0">
-        <div className="hidden lg:flex flex-col min-w-0">
+    <>
+      <MobileSidebar open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
+      <header className="sticky top-0 z-30 h-16 bg-surface/85 backdrop-blur-md border-b border-outline-variant flex items-center justify-between px-lg gap-lg">
+        <div className="flex items-center gap-md min-w-0">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setMobileNavOpen(true)}
+            className="md:hidden w-9 h-9 inline-flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors"
+            aria-label="Open navigation"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        <div className="flex flex-col min-w-0">
           <h2 className="font-geist font-semibold text-on-surface text-[15px] leading-tight truncate">
             {meta.title}
           </h2>
@@ -56,21 +93,6 @@ export function Topbar() {
               {meta.subtitle}
             </p>
           )}
-        </div>
-
-        <div className="flex items-center gap-sm h-9 pl-3 pr-2 rounded-lg border border-outline-variant bg-surface-container-low max-w-[420px] flex-1 lg:flex-none lg:w-[360px]">
-          <Search className="w-4 h-4 text-on-surface-variant" />
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="Search meetings, decisions, owners…"
-            onChange={(e) => setVaultQuery(e.target.value)}
-            onFocus={() => {
-              if (location.pathname !== "/vault") navigate("/vault");
-            }}
-            className="bg-transparent border-none outline-none text-body-md text-on-surface placeholder:text-outline flex-1 min-w-0"
-          />
-          <Kbd>⌘K</Kbd>
         </div>
       </div>
 
@@ -84,11 +106,23 @@ export function Topbar() {
             <Share2 className="w-4 h-4" />
           </button>
         </div>
-        <Button variant="primary" size="md">
-          <FileDown className="w-4 h-4" />
-          Export Executive Brief
-        </Button>
+        {meetingId && (
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handleExport}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <FileDown className="w-4 h-4" />
+            )}
+            {exporting ? "Generating…" : "Export Brief"}
+          </Button>
+        )}
       </div>
     </header>
+    </>
   );
 }

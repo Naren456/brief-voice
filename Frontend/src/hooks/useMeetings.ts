@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { meetingService } from "@/services/meeting.service";
+import type { MeetingStatus } from "@/types";
+
+const PROCESSING_STATUSES: MeetingStatus[] = ["uploaded", "processing", "transcribing", "summarizing"];
 
 export const meetingKeys = {
   all: ["meetings"] as const,
@@ -11,6 +14,12 @@ export function useMeetings() {
     queryKey: meetingKeys.all,
     queryFn: meetingService.list,
     staleTime: 30_000,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (!data) return false;
+      const hasProcessing = data.some((m) => PROCESSING_STATUSES.includes(m.status));
+      return hasProcessing ? 5_000 : false;
+    },
   });
 }
 

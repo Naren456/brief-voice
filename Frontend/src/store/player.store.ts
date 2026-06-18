@@ -23,14 +23,9 @@ interface PlayerState {
 }
 
 export const usePlayerStore = create<PlayerState>((set) => ({
-  current: {
-    meetingId: "m_001",
-    title: "Q3 Infrastructure & Prisma Migrations",
-    subtitle: "Oct 24 • AI Generated Brief",
-    durationMs: 28 * 60_000 + 12_000,
-  },
+  current: null,
   isPlaying: false,
-  positionMs: 185_000,
+  positionMs: 0,
   volume: 0.75,
   speed: 1,
   seek: (ms) => set({ positionMs: ms }),

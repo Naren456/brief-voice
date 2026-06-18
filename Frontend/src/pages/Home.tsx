@@ -56,7 +56,9 @@ export function Home() {
 
         <Dropzone onFile={handleFile} disabled={isUploading} />
 
-        <ProcessingStepper steps={steps} progress={uploadProgress} />
+        {(isUploading || steps.some((s) => s.status !== "pending")) && (
+          <ProcessingStepper steps={steps} progress={uploadProgress} />
+        )}
 
         {activeMeetingId && !isUploading && (
           <motion.div

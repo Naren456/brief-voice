@@ -6,6 +6,7 @@ export function useSearch(query: string) {
   return useQuery({
     queryKey: ["search", q],
     queryFn: () => searchService.query(q),
+    enabled: q.length > 0,
     staleTime: 30_000,
     placeholderData: (prev) => prev,
   });

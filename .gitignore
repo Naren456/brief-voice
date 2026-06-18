@@ -67,3 +67,5 @@ AI/
 /uploads
 
 qdrant_storage/
+.vercel
+.env*
