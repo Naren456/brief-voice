@@ -16,35 +16,13 @@ import { formatDuration } from "@/lib/format";
 
 const SPEEDS: Array<1 | 1.25 | 1.5 | 2> = [1, 1.25, 1.5, 2];
 
-function Waveform({ progress }: { progress: number }) {
-  const bars = useMemo(
-    () =>
-      Array.from({ length: 56 }, (_, i) => {
-        const seed = Math.sin(i * 0.45) * 0.5 + 0.5;
-        const variance = ((i * 7919) % 100) / 100;
-        return 5 + Math.round((seed * 0.7 + variance * 0.5) * 26);
-      }),
-    [],
-  );
-  const cutoff = Math.floor(bars.length * progress);
-  return (
-    <div className="w-full h-9 flex items-end gap-[2px]">
-      {bars.map((h, i) => (
-        <div
-          key={i}
-          style={{ height: `${h}px` }}
-          className={cn(
-            "w-[3px] rounded-full transition-colors",
-            i < cutoff ? "bg-primary" : "bg-outline-variant/70",
-            i === cutoff && "bg-primary scale-y-110",
-          )}
-        />
-      ))}
-    </div>
-  );
-}
+
+import { useLocation } from "react-router-dom";
 
 export function AudioDock() {
+  const location = useLocation();
+  const isMeetingDetail = location.pathname.startsWith("/meeting/");
+
   const {
     current,
     isPlaying,
@@ -79,9 +57,8 @@ export function AudioDock() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying, speed, current?.durationMs]);
 
-  if (!current) return null;
+  if (!current || !isMeetingDetail) return null;
 
-  const progress = Math.min(1, positionMs / current.durationMs);
 
   return (
     <footer className="fixed bottom-0 left-0 md:left-64 right-0 z-40 h-20 bg-surface-container/95 backdrop-blur-md border-t border-outline-variant shadow-dock">
@@ -102,8 +79,8 @@ export function AudioDock() {
           </div>
         </div>
 
-        {/* Center: transport + waveform */}
-        <div className="flex-1 flex flex-col items-center gap-2 max-w-3xl">
+        {/* Center: transport */}
+        <div className="flex-1 flex items-center justify-center max-w-3xl">
           <div className="flex items-center gap-lg text-on-surface-variant">
             <button className="hover:text-primary transition-colors">
               <Shuffle className="w-4 h-4" />
@@ -128,7 +105,6 @@ export function AudioDock() {
               <Repeat className="w-4 h-4" />
             </button>
           </div>
-          <Waveform progress={progress} />
         </div>
 
         {/* Right: speed + volume */}
