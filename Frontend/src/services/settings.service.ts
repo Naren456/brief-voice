@@ -162,6 +162,11 @@ export const settingsService = {
   },
 
   async runDangerousAction(action: string): Promise<{ ok: true; action: string }> {
+    if (action === "delete_all_meetings") {
+      await api.delete("/meetings/all");
+      return { ok: true as const, action };
+    }
+    // Fallback for other mock dangerous actions
     return delay({ ok: true as const, action }, 600);
   },
 };

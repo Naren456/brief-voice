@@ -62,8 +62,12 @@ const summaryJsonSchema = {
         description: "General future roadmap action tracks or directions discussed.",
         items: { type: "string" },
       },
+      insights: {
+        type: "string",
+        description: "A single, compelling, and unique analytical insight drawn from the conversation dynamics or content.",
+      },
     },
-    required: ["attendees", "keyDecisions", "discussionPoints", "openQuestions", "nextSteps"],
+    required: ["attendees", "keyDecisions", "discussionPoints", "openQuestions", "nextSteps", "insights"],
     additionalProperties: false,
   },
 };
@@ -76,22 +80,12 @@ const actionItemsJsonSchema = {
     properties: {
       items: {
         type: "array",
-        description: "List of explicit commitments, assignments, or tasks extracted.",
         items: {
           type: "object",
           properties: {
-            task: {
-              type: "string",
-              description: "Clear, descriptive explanation of what needs to be done.",
-            },
-            owner: {
-              type: "string",
-              description: "The specific individual name assigned to this task. Use an empty string if unassigned.",
-            },
-            deadline: {
-              type: "string",
-              description: "The explicitly stated deadline window. Use an empty string if not mentioned.",
-            },
+            task: { type: "string", description: "The specific action item or commitment." },
+            owner: { type: "string", description: "The name or speaker label (e.g. 'Speaker A') responsible for the item." },
+            deadline: { type: "string", description: "The explicit deadline, if stated." },
           },
           required: ["task", "owner", "deadline"],
           additionalProperties: false,
@@ -99,6 +93,36 @@ const actionItemsJsonSchema = {
       },
     },
     required: ["items"],
+    additionalProperties: false,
+  },
+};
+
+const analyticsJsonSchema = {
+  name: "analytics_insights",
+  strict: true,
+  schema: {
+    type: "object",
+    properties: {
+      keywords: {
+        type: "array",
+        description: "Top 4 most frequently discussed business keywords across all meetings.",
+        items: { type: "string" },
+      },
+      trendingTopics: {
+        type: "array",
+        description: "Top 3 overarching themes or topics with their current trajectory.",
+        items: {
+          type: "object",
+          properties: {
+            topic: { type: "string" },
+            state: { type: "string", enum: ["trending", "stable", "emerging"] },
+          },
+          required: ["topic", "state"],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ["keywords", "trendingTopics"],
     additionalProperties: false,
   },
 };
@@ -111,6 +135,7 @@ export interface OpenAISummaryOutput {
   discussionPoints: string[];
   openQuestions: string[];
   nextSteps: string[];
+  insights: string;
 }
 
 export interface OpenAIActionItemOutput {
@@ -128,14 +153,25 @@ const ZodSummarySchema = z.object({
   discussionPoints: z.array(z.string()),
   openQuestions: z.array(z.string()),
   nextSteps: z.array(z.string()),
+  insights: z.string(),
+});
+
+const ZodActionItemSchema = z.object({
+  task: z.string(),
+  owner: z.string(),
+  deadline: z.string(),
 });
 
 const ZodActionItemsResponseSchema = z.object({
-  items: z.array(
+  items: z.array(ZodActionItemSchema),
+});
+
+const ZodAnalyticsSchema = z.object({
+  keywords: z.array(z.string()),
+  trendingTopics: z.array(
     z.object({
-      task: z.string(),
-      owner: z.string(),
-      deadline: z.string(),
+      topic: z.string(),
+      state: z.enum(["trending", "stable", "emerging"]),
     })
   ),
 });
@@ -145,6 +181,7 @@ const ZodActionItemsResponseSchema = z.object({
  */
 export async function generateSummary(transcriptText: string, identifiedSpeakers: string[]): Promise<OpenAISummaryOutput> {
   try {
+    console.log(`[OpenRouter Service] Generating summary using model: ${modelName}`);
     const response = await getOpenRouterClient().chat.completions.create({
       model: modelName,
       messages: [
@@ -170,9 +207,13 @@ export async function generateSummary(transcriptText: string, identifiedSpeakers
     });
 
     const content = response.choices[0]?.message?.content;
+    const usage = response.usage;
+    console.log(`[OpenRouter Service] Summary generation complete. Tokens used: Prompt ${usage?.prompt_tokens}, Completion ${usage?.completion_tokens}, Total ${usage?.total_tokens}`);
+    
     if (!content) throw new Error("Received empty response from OpenRouter gateway.");
     
     // GUARDRAIL: Validate the JSON structure at runtime using Zod
+    console.log(`[OpenRouter Service] Parsing and validating summary JSON structure...`);
     const rawData = JSON.parse(content);
     const validatedData = ZodSummarySchema.parse(rawData);
     
@@ -185,6 +226,7 @@ export async function generateSummary(transcriptText: string, identifiedSpeakers
       discussionPoints: [],
       openQuestions: [],
       nextSteps: [],
+      insights: "Insights could not be generated due to an error.",
     };
   }
 }
@@ -194,6 +236,7 @@ export async function generateSummary(transcriptText: string, identifiedSpeakers
  */
 export async function extractActionItems(transcriptText: string): Promise<OpenAIActionItemOutput[]> {
   try {
+    console.log(`[OpenRouter Service] Extracting action items using model: ${modelName}`);
     const response = await getOpenRouterClient().chat.completions.create({
       model: modelName,
       messages: [
@@ -218,9 +261,13 @@ export async function extractActionItems(transcriptText: string): Promise<OpenAI
     });
 
     const content = response.choices[0]?.message?.content;
+    const usage = response.usage;
+    console.log(`[OpenRouter Service] Action item extraction complete. Tokens used: Prompt ${usage?.prompt_tokens}, Completion ${usage?.completion_tokens}, Total ${usage?.total_tokens}`);
+
     if (!content) throw new Error("Received empty response from OpenRouter gateway.");
 
     // GUARDRAIL: Validate the JSON structure at runtime using Zod
+    console.log(`[OpenRouter Service] Parsing and validating action items JSON structure...`);
     const rawData = JSON.parse(content);
     const validatedData = ZodActionItemsResponseSchema.parse(rawData);
     
@@ -233,5 +280,56 @@ export async function extractActionItems(transcriptText: string): Promise<OpenAI
   } catch (error) {
     console.error("[OpenRouter Service] Error extracting action items:", error);
     return [];
+  }
+}
+
+/**
+ * Extracts global analytics insights from a combined context of recent meeting summaries.
+ */
+export async function generateAnalyticsInsights(meetingsContext: string) {
+  try {
+    console.log(`[OpenRouter Service] Extracting analytics insights using model: ${modelName}`);
+    const response = await getOpenRouterClient().chat.completions.create({
+      model: modelName,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an expert technical meeting analyst. You will be provided with a combined text of recent meeting summaries and discussion points. " +
+            "Your job is to identify the top 4 recurring business keywords (e.g., 'architecture', 'budget', 'roadmap') and the top 3 high-level trending topics " +
+            "across these meetings. Assign a state ('trending', 'stable', or 'emerging') to each topic based on the context provided.",
+        },
+        {
+          role: "user",
+          content: `Recent Meeting Context:\n"""\n${meetingsContext}\n"""`,
+        },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: analyticsJsonSchema,
+      },
+      max_tokens: 400,
+      temperature: 0.2,
+    });
+
+    const content = response.choices[0]?.message?.content;
+    const usage = response.usage;
+    console.log(`[OpenRouter Service] Analytics extraction complete. Tokens used: Prompt ${usage?.prompt_tokens}, Completion ${usage?.completion_tokens}, Total ${usage?.total_tokens}`);
+
+    if (!content) throw new Error("Received empty response from OpenRouter gateway.");
+
+    console.log(`[OpenRouter Service] Parsing and validating analytics JSON structure...`);
+    const rawData = JSON.parse(content);
+    return ZodAnalyticsSchema.parse(rawData);
+  } catch (error) {
+    console.error("[OpenRouter Service] Error extracting analytics:", error);
+    return {
+      keywords: ["meetings", "action items", "decisions", "blockers"],
+      trendingTopics: [
+        { topic: "upload", state: "emerging" as const },
+        { topic: "planning", state: "stable" as const },
+        { topic: "review", state: "trending" as const }
+      ]
+    };
   }
 }

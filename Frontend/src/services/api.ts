@@ -8,11 +8,21 @@ export const api: AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+api.interceptors.request.use((config) => {
+  // eslint-disable-next-line no-console
+  console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data || "");
+  return config;
+});
+
 api.interceptors.response.use(
-  (r) => r,
+  (response) => {
+    // eslint-disable-next-line no-console
+    console.log(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url} - Status: ${response.status}`, response.data);
+    return response;
+  },
   (err) => {
     // eslint-disable-next-line no-console
-    console.warn("[api] request failed", err?.config?.url, err?.message);
+    console.error(`[API Error] ${err?.config?.method?.toUpperCase()} ${err?.config?.url}`, err?.message, err?.response?.data);
     return Promise.reject(err);
   },
 );

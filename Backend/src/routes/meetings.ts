@@ -6,7 +6,7 @@ import fsPromises from "fs/promises";
 import path from "path";
 import { prisma } from "../db/prisma";
 import { processMeetingPipeline } from "../workers/processMeeting";
-import { deleteMeetingEmbeddings } from "../services/search.service";
+import { deleteMeetingEmbeddings, deleteAllEmbeddings } from "../services/search.service";
 import { generatePDFReport, PDFReportError } from "../services/pdf.service";
 import {
   MeetingParamsSchema,
@@ -112,6 +112,7 @@ function formatMeetingDetail(meeting: NonNullable<Awaited<ReturnType<typeof find
           discussionPoints: parseJsonArray(meeting.summary.discussionPoints),
           openQuestions: parseJsonArray(meeting.summary.openQuestions),
           nextSteps: parseJsonArray(meeting.summary.nextSteps),
+          insights: meeting.summary.insights,
         }
       : null,
     actionItems: meeting.actionItems,
@@ -407,6 +408,40 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
         filename: newMeeting.filename,
         status: newMeeting.status,
       };
+    }
+  );
+
+  fastify.delete(
+    "/meetings/all",
+    {
+      schema: {
+        tags: ["Meetings"],
+        summary: "Delete all meetings and their derived data",
+      },
+    },
+    async (request, reply) => {
+      // Clear Qdrant embeddings
+      await deleteAllEmbeddings().catch((err) =>
+        fastify.log.error({ err }, "Failed to delete all embeddings")
+      );
+
+      // Fetch all meetings to clear their audio files from disk
+      const meetings = await prisma.meeting.findMany({ select: { audioPath: true } });
+
+      // Delete from DB (Prisma cascade will handle transcripts, summaries, action items)
+      await prisma.meeting.deleteMany({});
+
+      // Unlink audio files
+      for (const meeting of meetings) {
+        if (meeting.audioPath) {
+          await fsPromises.unlink(meeting.audioPath).catch(() => {});
+        }
+      }
+
+      return reply.status(200).send({
+        deleted: true,
+        count: meetings.length,
+      });
     }
   );
 

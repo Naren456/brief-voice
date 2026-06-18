@@ -68,6 +68,7 @@ model MeetingSummary {
   discussionPoints String   // High level summary of discussion topics
   openQuestions    String   // Bullet points of unanswered items
   nextSteps        String   // Fast access text summarizing future actions
+  insights         String   @default("No insights available.") // A single, compelling analytical insight
   
   createdAt        DateTime @default(now())
 }

@@ -146,6 +146,15 @@ export async function deleteMeetingEmbeddings(meetingId: string): Promise<void> 
   }
 }
 
+/** Remove all vectors and the entire collection from Qdrant. */
+export async function deleteAllEmbeddings(): Promise<void> {
+  try {
+    await qdrant.deleteCollection(QDRANT_COLLECTION);
+  } catch (err) {
+    console.warn(`[Search] deleteAllEmbeddings: ${(err as Error).message}`);
+  }
+}
+
 // ─── PUBLIC: SEMANTIC SEARCH ─────────────────────────────────────────────────
 
 export interface SearchResult {

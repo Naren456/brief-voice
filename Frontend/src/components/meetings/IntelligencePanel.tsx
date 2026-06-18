@@ -231,9 +231,8 @@ function AnalyticsSection({ detail }: { detail: MeetingDetail }) {
         <SectionTitle>AI Insight</SectionTitle>
         <div className="p-md rounded-lg border border-outline-variant bg-surface-container-highest flex gap-sm">
           <Quote className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
-          <p className="font-geist text-body-md text-on-surface-variant italic">
-            Conversation density peaked in the second quarter of the meeting, coinciding
-            with the technical architecture discussion.
+          <p className="font-geist text-body-md text-on-surface-variant italic leading-relaxed">
+            {detail.summary?.insights || "No AI insights available for this meeting."}
           </p>
         </div>
       </section>

@@ -15,14 +15,15 @@ function hashIndex(name: string): number {
 }
 
 interface SpeakerBadgeProps {
-  name: string;
+  name?: string | null;
   size?: "sm" | "md";
   className?: string;
   onClick?: () => void;
 }
 
 export function SpeakerBadge({ name, size = "md", className, onClick }: SpeakerBadgeProps) {
-  const palette = PALETTES[hashIndex(name)];
+  const safeName = name || "Unassigned";
+  const palette = PALETTES[hashIndex(safeName)];
   return (
     <button
       onClick={onClick}
@@ -34,7 +35,7 @@ export function SpeakerBadge({ name, size = "md", className, onClick }: SpeakerB
         className,
       )}
     >
-      {name}
+      {safeName}
     </button>
   );
 }

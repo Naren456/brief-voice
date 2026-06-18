@@ -143,6 +143,10 @@ export async function processMeetingPipeline(meetingId: string, filePath: string
     );
 
     console.log(`[Worker] Step 3: Triggering OpenAI structured summary synthesis...`);
+    await prisma.meeting.update({
+      where: { id: meetingId },
+      data: { status: "summarizing" },
+    });
     const summaryData = await generateSummary(labelledTranscript, uniqueSpeakers);
 
     // Save summary text data objects to SQLite
@@ -154,10 +158,15 @@ export async function processMeetingPipeline(meetingId: string, filePath: string
         discussionPoints: JSON.stringify(summaryData.discussionPoints),
         openQuestions: JSON.stringify(summaryData.openQuestions),
         nextSteps: JSON.stringify(summaryData.nextSteps),
+        insights: summaryData.insights,
       },
     });
 
     console.log(`[Worker] Step 4: Extracting interactive action items checklists via OpenAI...`);
+    await prisma.meeting.update({
+      where: { id: meetingId },
+      data: { status: "extracting_actions" },
+    });
     const actionItemsData = await extractActionItems(labelledTranscript);
 
     if (actionItemsData.length > 0) {
@@ -175,6 +184,10 @@ export async function processMeetingPipeline(meetingId: string, filePath: string
     // 5. Index transcript + summary into the vector store for semantic search.
     //    Failure here must not fail the whole meeting — log and continue.
     console.log(`[Worker] Step 5: Indexing meeting into the search archive...`);
+    await prisma.meeting.update({
+      where: { id: meetingId },
+      data: { status: "indexing" },
+    });
     try {
       await indexMeeting(meetingId);
     } catch (indexErr) {

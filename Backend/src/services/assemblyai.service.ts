@@ -45,19 +45,24 @@ export async function transcribeAudio(localFilePath: string): Promise<Transcript
 
     console.log(`[AssemblyAI Service] Uploading audio to AssemblyAI...`);
     const uploadUrl = await assembly.files.upload(fileStream);
+    console.log(`[AssemblyAI Service] Upload successful (URL: ${uploadUrl}). Starting diarization pipeline...`);
 
-    console.log(`[AssemblyAI Service] Upload successful. Starting diarization pipeline...`);
     const transcript = await assembly.transcripts.transcribe({
       audio: uploadUrl,
       speaker_labels: true, // Crucial for parsing separate meeting attendees
     });
 
     if (transcript.status === "error") {
+      console.error(`[AssemblyAI Service] Execution failed: ${transcript.error}`);
       throw new Error(`AssemblyAI execution failed: ${transcript.error}`);
     }
 
     const fullText = transcript.text || "";
-    const segments = (transcript.utterances || []).map((u) => ({
+    const utterances = transcript.utterances || [];
+    
+    console.log(`[AssemblyAI Service] Transcription complete. Extracted ${utterances.length} utterances. Audio duration: ${transcript.audio_duration} seconds.`);
+
+    const segments = utterances.map((u) => ({
       speaker: `Speaker ${u.speaker}`, // Normalizes "A" -> "Speaker A"
       text: u.text,
       startMs: u.start,

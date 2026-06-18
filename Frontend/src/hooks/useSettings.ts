@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { settingsService } from "@/services/settings.service";
 import { useSettingsStore } from "@/store/settings.store";
 import { useToast } from "@/components/ui/Toast";
+import { meetingKeys } from "@/hooks/useMeetings";
 
 export const settingsKeys = {
   all: ["settings"] as const,
@@ -57,9 +58,13 @@ export function useSaveSettings() {
 
 export function useRunDangerousAction() {
   const toast = useToast();
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: settingsService.runDangerousAction,
     onSuccess: (res) => {
+      if (res.action === "delete_all_meetings") {
+        qc.invalidateQueries({ queryKey: meetingKeys.all });
+      }
       toast.push({
         title: `Action completed — ${res.action}`,
         description: "The operation finished successfully.",
