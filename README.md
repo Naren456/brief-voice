@@ -140,6 +140,14 @@ VITE_USE_MOCK_API=false
 - **Searchable archive:** Qdrant enables natural language retrieval over transcripts and summaries.
 - **Analytics:** backend routes and frontend charts show speaking time, meeting frequency, completion rate, and repeated discussion patterns.
 
+## Team Contributions
+
+- **Narendra / Naren456:** Set up the initial backend with Fastify, Prisma, SQLite/PostgreSQL support, upload APIs, meeting routes, AssemblyAI transcription, OpenAI/OpenRouter processing, Docker, Vercel/serverless setup, Qdrant configuration, and deployment fixes.
+- **Ritesh Prajapati:** Added semantic search with embeddings and cosine ranking, analytics routes and service logic, speaker-labelled transcript input for the LLM, transcript clamping, meeting detail APIs, speaker rename, action item toggle, and delete endpoints.
+- **Harshita:** Verified the real audio processing pipeline, improved backend meeting APIs, added upload validation, analytics APIs, PDF report download, PDF guardrails, repository hygiene updates, and completion documentation.
+- **Yatharth:** Built the initial frontend application structure with pages, components, hooks, services, stores, settings UI, analytics UI, upload UI, meeting detail UI, mock data, and styling/configuration.
+- **Mohit:** Worked on frontend search and vault-related UI, search service integration, meeting archive browsing, filtering support, and connecting search results with meeting data.
+
 ## Evaluation Notes
 
 For a strong demo, use a clear recording with at least three speakers and several explicit follow-ups. After upload, verify the transcript, rename speakers, check extracted action items, run at least five archive searches, and show the analytics dashboard plus PDF report export. This directly maps to the assignment success metrics for transcription quality, diarisation, action item extraction, semantic search, structured summaries, and analytics.
