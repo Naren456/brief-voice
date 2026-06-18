@@ -16,6 +16,9 @@ function deadlineVariant(deadline?: string | null): {
 } {
   if (!deadline) return { variant: "neutral", label: "No deadline" };
   const due = new Date(deadline).getTime();
+  // Deadlines are free-form LLM-extracted strings (e.g. "next sprint"), which
+  // may not parse into a real date. Show them as-is instead of crashing.
+  if (Number.isNaN(due)) return { variant: "neutral", label: deadline };
   const now = Date.now();
   const days = Math.round((due - now) / 86400000);
   if (days < 0) return { variant: "warning", label: `Overdue • ${formatDate(deadline)}` };

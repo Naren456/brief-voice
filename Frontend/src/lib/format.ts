@@ -24,6 +24,7 @@ export function formatDate(iso: string | Date, opts: Intl.DateTimeFormatOptions 
   year: "numeric",
 }): string {
   const d = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(d.getTime())) return typeof iso === "string" ? iso : "";
   return new Intl.DateTimeFormat("en-US", opts).format(d);
 }
 
