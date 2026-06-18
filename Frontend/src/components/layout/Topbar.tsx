@@ -6,7 +6,7 @@ import { api } from "@/services/api";
 import { MobileSidebar } from "./MobileSidebar";
 
 const ROUTE_TITLES: Record<string, { title: string; subtitle?: string }> = {
-  "/": {
+  "/dashboard": {
     title: "Ingestion Gateway",
     subtitle: "Upload meetings for AI synthesis",
   },
