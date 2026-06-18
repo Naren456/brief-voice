@@ -3,7 +3,7 @@ import { useCallback, useState, type DragEvent } from "react";
 import { cn } from "@/lib/cn";
 
 const ACCEPTED = [".mp3", ".wav", ".m4a"];
-const MAX_BYTES = 50 * 1024 * 1024;
+const MAX_BYTES = 500 * 1024 * 1024;
 
 interface DropzoneProps {
   onFile: (file: File) => void;
@@ -21,7 +21,7 @@ export function Dropzone({ onFile, disabled }: DropzoneProps) {
       return false;
     }
     if (file.size > MAX_BYTES) {
-      setError("File exceeds 50MB. Trim or compress.");
+      setError("File exceeds 500MB. Trim or compress.");
       return false;
     }
     setError(null);
@@ -59,6 +59,7 @@ export function Dropzone({ onFile, disabled }: DropzoneProps) {
       >
         <input
           type="file"
+          title=""
           accept={ACCEPTED.join(",")}
           className="absolute inset-0 opacity-0 cursor-pointer"
           onChange={(e) => {
@@ -76,7 +77,7 @@ export function Dropzone({ onFile, disabled }: DropzoneProps) {
               Drop audio assets here
             </p>
             <p className="font-geist text-body-md text-on-surface-variant">
-              Supports .mp3, .wav, .m4a (Max 50MB)
+              Supports .mp3, .wav, .m4a (Max 500MB)
             </p>
           </div>
           <div className="flex items-center gap-xs">

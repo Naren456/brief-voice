@@ -40,13 +40,6 @@ function Waveform({ progress }: { progress: number }) {
           )}
         />
       ))}
-      {/* AI key moment markers */}
-      <div className="relative w-0 h-full">
-        <div
-          className="absolute -top-1 left-[-180px] w-[2px] h-9 bg-secondary shadow-[0_0_10px_rgba(208,188,255,0.4)]"
-          title="AI Key Moment"
-        />
-      </div>
     </div>
   );
 }

@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
 
 const NAV_ITEMS = [
-  { to: "/", label: "Home", icon: Home, end: true },
+  { to: "/dashboard", label: "Home", icon: Home, end: true },
   { to: "/vault", label: "Vault", icon: FolderArchive },
   { to: "/analytics", label: "Insights", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
@@ -72,7 +72,7 @@ export function Sidebar() {
 
       <div className="px-sm pt-md border-t border-outline-variant space-y-sm">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/dashboard")}
           className="w-full flex items-center justify-center gap-sm py-2.5 rounded-lg bg-primary-container/90 hover:bg-primary-container text-on-primary-container font-mono text-label-md tracking-wide transition-colors active:scale-[0.98]"
         >
           <Upload className="w-4 h-4" strokeWidth={2} />

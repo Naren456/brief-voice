@@ -3,14 +3,6 @@ import { meetingService } from "@/services/meeting.service";
 import { useUploadStore } from "@/store/upload.store";
 import { meetingKeys } from "./useMeetings";
 
-const SIMULATED_DELAYS: Record<string, number> = {
-  diarization: 900,
-  transcription: 1400,
-  summary: 1100,
-  actionItems: 800,
-  indexed: 600,
-};
-
 export function useUpload() {
   const qc = useQueryClient();
   const {
@@ -30,12 +22,8 @@ export function useUpload() {
 
       const res = await meetingService.upload(file, (p) => setProgress(p));
       setActiveMeetingId(res.meetingId);
-
-      const order = ["diarization", "transcription", "summary", "actionItems", "indexed"] as const;
-      for (const stage of order) {
-        advanceStage(stage);
-        await new Promise((r) => setTimeout(r, SIMULATED_DELAYS[stage] ?? 500));
-      }
+      
+      // Let the backend status polling handle the rest
       return res;
     },
     onSettled: () => {

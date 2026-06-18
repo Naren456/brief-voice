@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, Outlet } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
 import { Home } from "@/pages/Home";
@@ -29,20 +29,32 @@ function Page({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { Landing } from "@/pages/Landing";
+
+function AppLayout() {
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
+}
+
 export function AppRoutes() {
   const location = useLocation();
   return (
-    <AppShell>
-      <AnimatePresence mode="wait" initial={false}>
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Page><Home /></Page>} />
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<Page><Landing /></Page>} />
+        
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Page><Home /></Page>} />
           <Route path="/vault" element={<Page><Vault /></Page>} />
           <Route path="/meeting/:id" element={<Page><MeetingDetail /></Page>} />
           <Route path="/analytics" element={<Page><Analytics /></Page>} />
           <Route path="/settings" element={<Page><Settings /></Page>} />
           <Route path="*" element={<Page><NotFound /></Page>} />
-        </Routes>
-      </AnimatePresence>
-    </AppShell>
+        </Route>
+      </Routes>
+    </AnimatePresence>
   );
 }

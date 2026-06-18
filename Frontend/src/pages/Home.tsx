@@ -1,28 +1,42 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import { useEffect } from "react";
 import { Dropzone } from "@/components/upload/Dropzone";
 import { ProcessingStepper } from "@/components/upload/ProcessingStepper";
 import { WarningBanner } from "@/components/upload/WarningBanner";
 import { useUpload } from "@/hooks/useUpload";
 import { useUploadStore } from "@/store/upload.store";
 import { Button } from "@/components/ui/Button";
-import { usePlayerStore } from "@/store/player.store";
+import { useMeeting } from "@/hooks/useMeetings";
+import type { PipelineStep } from "@/types";
 
 export function Home() {
   const navigate = useNavigate();
   const upload = useUpload();
-  const { steps, uploadProgress, isUploading, activeMeetingId } = useUploadStore();
-  const play = usePlayerStore((s) => s.play);
+  const { steps, uploadProgress, isUploading, activeMeetingId, advanceStage } = useUploadStore();
+  const { data: activeMeeting } = useMeeting(activeMeetingId ?? undefined);
+
+  useEffect(() => {
+    if (!activeMeeting) return;
+    
+    // Map backend status to frontend pipeline stages
+    const statusMap: Record<string, PipelineStep["id"]> = {
+      uploaded: "diarization",
+      processing: "diarization",
+      transcribing: "transcription",
+      summarizing: "summary",
+      ready: "indexed",
+    };
+
+    const targetStage = statusMap[activeMeeting.status];
+    if (targetStage) {
+      advanceStage(targetStage);
+    }
+  }, [activeMeeting?.status, advanceStage]);
 
   const handleFile = async (file: File) => {
-    const res = await upload.mutateAsync(file);
-    play({
-      meetingId: res.meetingId,
-      title: res.filename.replace(/\.[a-z0-9]+$/i, ""),
-      subtitle: "Just ingested",
-      durationMs: 25 * 60_000,
-    });
+    await upload.mutateAsync(file);
   };
 
   return (
@@ -54,7 +68,9 @@ export function Home() {
 
         <WarningBanner />
 
-        <Dropzone onFile={handleFile} disabled={isUploading} />
+        {!isUploading && !activeMeetingId && (
+          <Dropzone onFile={handleFile} disabled={isUploading} />
+        )}
 
         {(isUploading || steps.some((s) => s.status !== "pending")) && (
           <ProcessingStepper steps={steps} progress={uploadProgress} />
