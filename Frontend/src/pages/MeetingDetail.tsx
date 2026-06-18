@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { Search, ScrollText } from "lucide-react";
+import { Search, ScrollText, AlertTriangle } from "lucide-react";
 import { TranscriptMessage } from "@/components/meetings/TranscriptMessage";
 import { IntelligencePanel } from "@/components/meetings/IntelligencePanel";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useMeeting, useRenameSpeakers, useToggleActionItem } from "@/hooks/useMeetings";
 import { usePlayerStore } from "@/store/player.store";
 import { useMeetingUIStore } from "@/store/meeting.store";
+import { useUploadStore } from "@/store/upload.store";
 import { formatDate, formatDuration } from "@/lib/format";
 import { Badge } from "@/components/ui/Badge";
 
@@ -20,7 +21,13 @@ export function MeetingDetail() {
 
   const { positionMs, seek, play, current } = usePlayerStore();
   const { transcriptQuery, setTranscriptQuery } = useMeetingUIStore();
+  const { setActiveMeetingId } = useUploadStore();
   const [showSearch, setShowSearch] = useState(false);
+
+  // Clear upload state when viewing a meeting, so Home is fresh for the next upload
+  useEffect(() => {
+    setActiveMeetingId(null);
+  }, [setActiveMeetingId]);
 
   // When a meeting opens, sync the dock to this meeting if it isn't already.
   useEffect(() => {
@@ -74,8 +81,21 @@ export function MeetingDetail() {
     );
   }
 
+  // Processing failed on the backend — surface it instead of spinning forever.
+  if (data.status === "error") {
+    return (
+      <div className="p-2xl">
+        <EmptyState
+          icon={AlertTriangle}
+          title="Processing failed"
+          description="Something went wrong while distilling this meeting. Try uploading the recording again."
+        />
+      </div>
+    );
+  }
+
   // Show a beautifully animated loading state while the meeting is being distilled
-  if (data.status !== "ready" && data.status !== "processed") {
+  if (data.status !== "processed") {
     return (
       <div className="flex flex-col items-center justify-center h-full p-2xl">
         <div className="relative w-24 h-24 mb-lg">

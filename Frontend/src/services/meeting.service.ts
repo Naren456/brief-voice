@@ -20,6 +20,12 @@ export const meetingService = {
     form.append("file", file);
     const { data } = await api.post<UploadInitResponse>("/meetings/upload", form, {
       headers: { "Content-Type": "multipart/form-data" },
+      // Large recordings (up to 500MB) over a cold backend can far exceed the
+      // 30s global axios timeout, which silently aborts the upload. Disable it
+      // for this request; upload progress already gives the user feedback.
+      timeout: 0,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
       onUploadProgress: (e) => {
         if (e.total) onProgress?.(Math.round((e.loaded / e.total) * 100));
       },

@@ -1,11 +1,14 @@
+// Mirrors the exact status strings the backend persists
+// (Backend/src/routes/meetings.ts + Backend/src/workers/processMeeting.ts).
 export type MeetingStatus =
   | "uploaded"
   | "processing"
-  | "transcribing"
+  | "transcribed"
   | "summarizing"
+  | "extracting_actions"
+  | "indexing"
   | "processed"
-  | "ready"
-  | "failed";
+  | "error";
 
 export interface TranscriptSegment {
   id: string;
@@ -27,6 +30,7 @@ export interface Summary {
   discussionPoints: string[];
   openQuestions: string[];
   nextSteps: string[];
+  insights: string;
 }
 
 export interface ActionItem {

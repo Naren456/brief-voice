@@ -65,6 +65,8 @@ export function Dropzone({ onFile, disabled }: DropzoneProps) {
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file && validate(file)) onFile(file);
+            // Reset so picking the same file again still fires onChange.
+            e.target.value = "";
           }}
           disabled={disabled}
         />

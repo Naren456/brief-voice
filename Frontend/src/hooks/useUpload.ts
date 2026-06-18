@@ -9,6 +9,7 @@ export function useUpload() {
     setProgress,
     setUploading,
     setActiveMeetingId,
+    setFileMeta,
     advanceStage,
     resetSteps,
   } = useUploadStore();
@@ -16,13 +17,15 @@ export function useUpload() {
   return useMutation({
     mutationFn: async (file: File) => {
       resetSteps();
+      setFileMeta(file.name, file.size);
+      setActiveMeetingId(null);
       setUploading(true);
       setProgress(0);
       advanceStage("transmitted");
 
       const res = await meetingService.upload(file, (p) => setProgress(p));
       setActiveMeetingId(res.meetingId);
-      
+
       // Let the backend status polling handle the rest
       return res;
     },

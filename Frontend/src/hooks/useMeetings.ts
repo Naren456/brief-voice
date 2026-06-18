@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { meetingService } from "@/services/meeting.service";
 import type { MeetingStatus } from "@/types";
 
-const PROCESSING_STATUSES: MeetingStatus[] = ["uploaded", "processing", "transcribing", "summarizing"];
+const isProcessingStatus = (status: string) => !["processed", "error"].includes(status);
 
 export const meetingKeys = {
   all: ["meetings"] as const,
@@ -17,7 +17,7 @@ export function useMeetings() {
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return false;
-      const hasProcessing = data.some((m) => PROCESSING_STATUSES.includes(m.status));
+      const hasProcessing = data.some((m) => isProcessingStatus(m.status));
       return hasProcessing ? 5_000 : false;
     },
   });
@@ -31,7 +31,7 @@ export function useMeeting(id: string | undefined) {
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return false;
-      return PROCESSING_STATUSES.includes(data.status) ? 5_000 : false;
+      return isProcessingStatus(data.status) ? 5_000 : false;
     },
   });
 }

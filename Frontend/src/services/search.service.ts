@@ -12,7 +12,7 @@ export const searchService = {
         filename: r.filename ?? "",
         title: r.meetingTitle ?? r.title ?? "Untitled Meeting",
         category: r.category ?? undefined,
-        status: r.status ?? "ready",
+        status: r.status ?? "processed",
         createdAt: r.createdAt ?? new Date().toISOString(),
         durationMs: r.durationMs ?? 0,
         speakerCount: r.speakerCount ?? 0,
