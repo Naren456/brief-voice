@@ -36,7 +36,10 @@ export function Home() {
   }, [activeMeeting?.status, advanceStage]);
 
   const handleFile = async (file: File) => {
-    await upload.mutateAsync(file);
+    const res = await upload.mutateAsync(file);
+    if (res?.meetingId) {
+      navigate(`/meeting/${res.meetingId}`);
+    }
   };
 
   return (

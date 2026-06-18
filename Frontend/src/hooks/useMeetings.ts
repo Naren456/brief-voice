@@ -28,6 +28,11 @@ export function useMeeting(id: string | undefined) {
     queryKey: meetingKeys.detail(id ?? ""),
     queryFn: () => meetingService.get(id!),
     enabled: !!id,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (!data) return false;
+      return PROCESSING_STATUSES.includes(data.status) ? 5_000 : false;
+    },
   });
 }
 

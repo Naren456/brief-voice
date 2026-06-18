@@ -74,6 +74,34 @@ export function MeetingDetail() {
     );
   }
 
+  // Show a beautifully animated loading state while the meeting is being distilled
+  if (data.status !== "ready") {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-2xl">
+        <div className="relative w-24 h-24 mb-lg">
+          <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
+          <div className="relative w-full h-full rounded-2xl bg-surface-container border border-outline-variant flex items-center justify-center shadow-lg animate-pulse">
+            <ScrollText className="w-8 h-8 text-primary" />
+          </div>
+        </div>
+        <h1 className="font-geist font-semibold text-headline-sm text-on-surface mb-2">
+          Distilling Intelligence
+        </h1>
+        <p className="font-geist text-body-md text-on-surface-variant max-w-md text-center leading-relaxed">
+          Our AI models are actively transcribing, diarizing, and extracting action items from your audio.
+        </p>
+        <div className="mt-8 flex flex-col gap-3 w-64 bg-surface-container-low p-4 rounded-xl border border-outline-variant/50">
+           <div className="flex justify-between font-mono text-label-sm uppercase text-on-surface-variant tracking-wider">
+             <span>Pipeline Status</span>
+             <span className="text-primary font-medium animate-pulse">
+               {data.status === "uploaded" ? "waiting" : data.status}
+             </span>
+           </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Meeting header strip */}
