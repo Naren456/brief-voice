@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, BrainCircuit, Mic2, Sparkles, Network, CheckCircle2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { HeroTerminal } from "@/components/landing/HeroTerminal";
 
 const FADE_UP = {
   hidden: { opacity: 0, y: 30 },
@@ -22,95 +23,18 @@ function MockupDashboard() {
       initial={{ opacity: 0, y: 40, rotateX: 10, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
       transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="relative mt-16 w-full max-w-5xl mx-auto perspective-1000 hidden md:block"
+      className="relative mt-16 w-full max-w-4xl mx-auto perspective-1000 hidden md:block"
       style={{ perspective: "1000px" }}
     >
-      <div className="relative rounded-[24px] border border-outline-variant/40 bg-surface-container/30 backdrop-blur-2xl overflow-hidden shadow-2xl z-10">
-        {/* macOS style Window Header */}
-        <div className="h-12 border-b border-outline-variant/30 flex items-center px-4 gap-2 bg-surface-container/50">
-          <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-error/80 shadow-sm" />
-            <div className="w-3 h-3 rounded-full bg-[#F5A623]/80 shadow-sm" />
-            <div className="w-3 h-3 rounded-full bg-success/80 shadow-sm" />
-          </div>
-          <div className="mx-auto flex items-center justify-center w-full pr-12">
-             <div className="h-5 w-48 bg-surface-container-highest/40 rounded-md" />
-          </div>
-        </div>
-        
-        {/* Mockup Body */}
-        <div className="flex h-[460px]">
-           {/* Sidebar */}
-           <div className="w-64 border-r border-outline-variant/30 p-6 space-y-6 bg-surface-container-lowest/30">
-             <div className="space-y-3">
-               <div className="h-8 bg-primary/20 rounded-lg w-full flex items-center px-3 gap-3">
-                 <div className="w-4 h-4 rounded-sm bg-primary/40" />
-                 <div className="h-3 w-16 bg-primary/40 rounded" />
-               </div>
-               <div className="h-8 bg-surface-container-highest/20 rounded-lg w-full" />
-               <div className="h-8 bg-surface-container-highest/20 rounded-lg w-3/4" />
-             </div>
-             <div className="pt-6 space-y-3">
-               <div className="h-3 w-12 bg-outline-variant/40 rounded mb-4" />
-               <div className="h-16 bg-surface-container-highest/20 rounded-xl w-full" />
-               <div className="h-16 bg-surface-container-highest/20 rounded-xl w-full" />
-             </div>
-           </div>
-           
-           {/* Main Transcript Area */}
-           <div className="flex-1 p-8 space-y-8 bg-surface-container-lowest/10 relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-surface-container-lowest/50 to-transparent pointer-events-none" />
-             
-             {/* Transcript Message 1 */}
-             <div className="flex gap-4">
-               <div className="w-10 h-10 rounded-full bg-primary/20 flex-shrink-0 border border-primary/20" />
-               <div className="flex-1 space-y-3 pt-1">
-                 <div className="flex items-center gap-2">
-                   <div className="h-3 bg-primary/40 rounded w-24" />
-                   <div className="h-2 bg-outline-variant/30 rounded w-12" />
-                 </div>
-                 <div className="h-3 bg-on-surface/60 rounded w-full" />
-                 <div className="h-3 bg-on-surface/60 rounded w-[90%]" />
-                 <div className="h-3 bg-on-surface/60 rounded w-[40%]" />
-               </div>
-             </div>
-             
-             {/* Transcript Message 2 */}
-             <div className="flex gap-4">
-               <div className="w-10 h-10 rounded-full bg-tertiary/20 flex-shrink-0 border border-tertiary/20" />
-               <div className="flex-1 space-y-3 pt-1">
-                 <div className="flex items-center gap-2">
-                   <div className="h-3 bg-tertiary/40 rounded w-32" />
-                   <div className="h-2 bg-outline-variant/30 rounded w-12" />
-                 </div>
-                 <div className="h-3 bg-on-surface/60 rounded w-full" />
-                 <div className="h-3 bg-on-surface/60 rounded w-[85%]" />
-                 <div className="h-3 bg-on-surface/60 rounded w-[60%]" />
-               </div>
-             </div>
-             
-             {/* Audio Dock Bottom Bar Mockup */}
-             <div className="absolute bottom-6 left-6 right-6 h-16 bg-surface-container-highest/80 backdrop-blur-md rounded-2xl border border-outline-variant/40 flex items-center px-6 gap-4 shadow-xl">
-                <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center">
-                  <div className="w-3 h-3 bg-current rounded-sm" />
-                </div>
-                <div className="flex-1 h-1 bg-outline-variant/50 rounded-full overflow-hidden">
-                  <div className="w-1/3 h-full bg-primary rounded-full" />
-                </div>
-                <div className="w-24 h-4 flex items-end gap-1 opacity-50">
-                   {[1,2,3,4,5,6,7,8,9,10].map(i => (
-                     <div key={i} className="flex-1 bg-on-surface rounded-t-sm" style={{ height: `${Math.random() * 100}%` }} />
-                   ))}
-                </div>
-             </div>
-           </div>
-        </div>
+      <div className="relative z-10">
+        {/* Live ingestion terminal */}
+        <HeroTerminal />
 
         {/* Floating Intelligence Badge */}
-        <motion.div 
-          animate={{ y: [-15, 15, -15] }} 
+        <motion.div
+          animate={{ y: [-6, 6, -6] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -right-8 top-[30%] p-4 rounded-2xl bg-surface-container-high/90 backdrop-blur-xl border border-outline-variant shadow-2xl z-20 hidden lg:block"
+          className="absolute -right-14 -top-10 p-4 rounded-2xl bg-surface-container-high/90 backdrop-blur-xl border border-outline-variant shadow-2xl z-20 hidden lg:block"
         >
            <div className="flex items-start gap-4 w-64">
              <div className="w-10 h-10 rounded-xl bg-success/20 flex items-center justify-center shrink-0 border border-success/30">
@@ -126,10 +50,10 @@ function MockupDashboard() {
         </motion.div>
         
         {/* Floating Summary Badge */}
-        <motion.div 
-          animate={{ y: [10, -10, 10] }} 
+        <motion.div
+          animate={{ y: [6, -6, 6] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -left-10 bottom-[30%] p-4 rounded-2xl bg-surface-container-high/90 backdrop-blur-xl border border-outline-variant shadow-2xl z-20 hidden lg:block"
+          className="absolute -left-14 -bottom-14 p-4 rounded-2xl bg-surface-container-high/90 backdrop-blur-xl border border-outline-variant shadow-2xl z-20 hidden lg:block"
         >
            <div className="flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl bg-tertiary/20 flex items-center justify-center shrink-0 border border-tertiary/30">

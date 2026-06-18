@@ -10,16 +10,22 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/cn";
+import { useUploadStore } from "@/store/upload.store";
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Home", icon: Home, end: true },
   { to: "/vault", label: "Vault", icon: FolderArchive },
-  { to: "/analytics", label: "Insights", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const resetUpload = useUploadStore((s) => s.reset);
+
+  const startNewUpload = () => {
+    resetUpload();
+    navigate("/dashboard");
+  };
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-surface border-r border-outline-variant z-40 hidden md:flex flex-col py-md">
@@ -72,7 +78,7 @@ export function Sidebar() {
 
       <div className="px-sm pt-md border-t border-outline-variant space-y-sm">
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={startNewUpload}
           className="w-full flex items-center justify-center gap-sm py-2.5 rounded-lg bg-primary-container/90 hover:bg-primary-container text-on-primary-container font-mono text-label-md tracking-wide transition-colors active:scale-[0.98]"
         >
           <Upload className="w-4 h-4" strokeWidth={2} />
