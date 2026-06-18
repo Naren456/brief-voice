@@ -83,7 +83,7 @@ export function Landing() {
             variants={FADE_UP}
             className="font-geist text-xl md:text-2xl text-on-surface-variant max-w-2xl mx-auto leading-relaxed"
           >
-            Transform raw audio into structured executive briefs, semantic search vaults, and actionable insights in minutes.
+            Turn unorganized meeting voice recordings into a highly structured, searchable, and fully actionable knowledge asset in under 2 minutes.
           </motion.p>
           
           <motion.div variants={FADE_UP} className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -145,21 +145,21 @@ export function Landing() {
 
 const FEATURES = [
   {
-    title: "Executive Summaries",
-    desc: "Our LLMs digest hours of conversation to produce highly structured, actionable executive briefs instantly.",
+    title: "Eliminate the Meeting Tax",
+    desc: "Stop losing information and delaying follow-ups. Automatically capture speaker-labelled transcripts and checkable action items with owners and deadlines so nothing slips through the cracks.",
     icon: BrainCircuit,
     color: "text-primary shadow-primary/20",
   },
   {
-    title: "Semantic Vault",
-    desc: "Every spoken word is vectorized. Find specific moments across thousands of meetings using natural language search.",
-    icon: Network,
-    color: "text-tertiary shadow-tertiary/20",
-  },
-  {
-    title: "Speaker Diarization",
-    desc: "Automatically detect, separate, and label multiple speakers with high accuracy using state-of-the-art audio models.",
+    title: "End Onboarding Overhead",
+    desc: "Stop draining engineering and operational velocity. Bring new team members or stakeholders up to speed instantly without forcing them to sit through hours of replaying past context-setting conversations.",
     icon: Mic2,
     color: "text-secondary shadow-secondary/20",
+  },
+  {
+    title: "Full Decision Traceability",
+    desc: "Never struggle to revisit the exact background, open questions, or reasoning behind a critical key decision. Everything is centralized, fully indexed, and semantically searchable in the vault.",
+    icon: Network,
+    color: "text-tertiary shadow-tertiary/20",
   },
 ];
