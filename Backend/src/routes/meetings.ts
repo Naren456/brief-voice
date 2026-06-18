@@ -394,11 +394,11 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
         try {
           await processMeetingPipeline(newMeeting.id, newMeeting.audioPath);
         } catch (err) {
-          fastify.log.error(`Pipeline error for meeting ${meetingId}:`, err);
+          fastify.log.error({ err }, `Pipeline error for meeting ${meetingId}`);
         }
       } else {
         processMeetingPipeline(newMeeting.id, newMeeting.audioPath).catch((err) =>
-          fastify.log.error(`Pipeline error for meeting ${meetingId}:`, err)
+          fastify.log.error({ err }, `Pipeline error for meeting ${meetingId}`)
         );
       }
 
@@ -435,7 +435,7 @@ export default async function meetingRoutes(fastify: FastifyInstance) {
       }
 
       await deleteMeetingEmbeddings(id).catch((err) =>
-        fastify.log.error(`Failed to delete embeddings for ${id}:`, err)
+        fastify.log.error({ err }, `Failed to delete embeddings for ${id}`)
       );
 
       await prisma.meeting.delete({
