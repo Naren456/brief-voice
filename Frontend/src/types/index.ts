@@ -3,6 +3,7 @@ export type MeetingStatus =
   | "processing"
   | "transcribing"
   | "summarizing"
+  | "processed"
   | "ready"
   | "failed";
 

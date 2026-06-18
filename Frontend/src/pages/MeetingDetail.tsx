@@ -75,7 +75,7 @@ export function MeetingDetail() {
   }
 
   // Show a beautifully animated loading state while the meeting is being distilled
-  if (data.status !== "ready") {
+  if (data.status !== "ready" && data.status !== "processed") {
     return (
       <div className="flex flex-col items-center justify-center h-full p-2xl">
         <div className="relative w-24 h-24 mb-lg">

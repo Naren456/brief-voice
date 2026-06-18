@@ -26,6 +26,7 @@ export function Home() {
       processing: "diarization",
       transcribing: "transcription",
       summarizing: "summary",
+      processed: "indexed",
       ready: "indexed",
     };
 
